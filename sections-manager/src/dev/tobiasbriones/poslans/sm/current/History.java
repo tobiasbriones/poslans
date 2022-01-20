@@ -20,7 +20,7 @@ import java.util.Date;
 import java.util.List;
 
 public final class History {
-    private static final String DATA_DIRECTORY = "data/history";
+    private static final String DATA_DIRECTORY = "sections-manager/data/history";
 
     public static void save(
         List<Section> sections,

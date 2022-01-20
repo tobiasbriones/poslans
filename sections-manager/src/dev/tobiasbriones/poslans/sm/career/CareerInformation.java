@@ -15,13 +15,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class CareerInformation {
-    private static final String DATA_DIRECTORY = "data";
+    private static final String DATA_DIRECTORY = "sections-manager/data";
     private static final String FILE_PATH = DATA_DIRECTORY + "/info";
     private static final String KEY_UNIVERSITY = "university";
     private static final String KEY_CAREER = "career";
 
-    public static void saveInformation(String university, String career) throws
-                                                                         IOException {
+    public static void saveInformation(String university, String career) throws IOException {
         final JSONObject json = new JSONObject();
         FileWriter fw = null;
         check();

@@ -22,7 +22,7 @@ import java.util.List;
 abstract class Editor<T> {
     static final int CHANGE_CREATE = 0;
     static final int CHANGE_DELETE = 1;
-    private static final String DATA_DIRECTORY = "data/careers";
+    private static final String DATA_DIRECTORY = "sections-manager/data/careers";
 
     interface JSONComparator {
         int compare(JSONObject a, JSONObject b);

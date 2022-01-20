@@ -22,7 +22,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public final class SectionsEditor {
-    private static final String DATA_DIRECTORY = "data";
+    private static final String DATA_DIRECTORY = "sections-manager/data";
     private static final String CURRENT_SECTIONS_FILE_PATH =
         DATA_DIRECTORY + "/current";
     private static final String KEY_CLASS = "class";

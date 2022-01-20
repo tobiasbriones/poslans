@@ -11,7 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 
 public final class Term {
-    private static final String DATA_DIRECTORY = "data";
+    private static final String DATA_DIRECTORY = "sections-manager/data";
     private static final String FILE_PATH = DATA_DIRECTORY + "/term";
 
     public static void set(String name) throws IOException {
