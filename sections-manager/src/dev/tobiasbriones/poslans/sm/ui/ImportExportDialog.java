@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -21,10 +21,12 @@ final class ImportExportDialog extends JDialog implements R,
                                                           ActionListener {
     private static final long serialVersionUID = 53695931389262668L;
     public interface Callback {
+
         void onImport(
             Sheet classesSheet,
             Sheet professorsSheet,
-            Sheet classroomsSheet
+            Sheet classroomsSheet,
+            Sheet professorSpecializationsSheet
         );
 
         void onExport();
@@ -32,13 +34,13 @@ final class ImportExportDialog extends JDialog implements R,
     private final Callback callback;
 
     ImportExportDialog(CareerDataDialog dialog) {
-        super(dialog, IMPORT_EXPORT);
+        super(dialog, Strings.IMPORT_EXPORT);
         this.callback = dialog;
         final JPanel panel = new JPanel();
         final JPanel mainPanel = new JPanel();
-        final JLabel label = new JLabel(IMPORT_EXPORT_LABEL);
-        final JButton importButton = new JButton(IMPORT);
-        final JButton exportButton = new JButton(EXPORT);
+        final JLabel label = new JLabel(Strings.IMPORT_EXPORT_LABEL);
+        final JButton importButton = new JButton(Strings.IMPORT);
+        final JButton exportButton = new JButton(Strings.EXPORT);
         importButton.setName(R.IMPORT_EXPORT_DIALOG_IMPORT);
         importButton.addActionListener(this);
         exportButton.setName(R.IMPORT_EXPORT_DIALOG_EXPORT);
@@ -64,7 +66,7 @@ final class ImportExportDialog extends JDialog implements R,
         switch (((Component) e.getSource()).getName()) {
             case R.IMPORT_EXPORT_DIALOG_IMPORT:
                 final JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setDialogTitle(SELECT_EXCEL);
+                fileChooser.setDialogTitle(Strings.SELECT_EXCEL);
                 fileChooser.setFileFilter(new FileFilter() {
 
                     @Override
@@ -85,7 +87,7 @@ final class ImportExportDialog extends JDialog implements R,
 
                     @Override
                     public String getDescription() {
-                        return EXCEL_FILES;
+                        return Strings.EXCEL_FILES;
                     }
                 });
                 if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
@@ -93,18 +95,20 @@ final class ImportExportDialog extends JDialog implements R,
                     Sheet classesSheet = null;
                     Sheet professorsSheet = null;
                     Sheet classroomsSheet = null;
+                    Sheet professorSpecializationsSheet = null;
                     try {
                         final Workbook workbook = new XSSFWorkbook(file);
                         classesSheet = workbook.getSheetAt(0);
                         professorsSheet = workbook.getSheetAt(1);
                         classroomsSheet = workbook.getSheetAt(2);
+                        professorSpecializationsSheet = workbook.getSheetAt(3);
                         workbook.close();
                     }
                     catch (Exception ex) {
                         JOptionPane.showMessageDialog(
                             this,
                             ex,
-                            ERROR_OPENING,
+                            Strings.ERROR_OPENING,
                             JOptionPane.ERROR_MESSAGE
                         );
                         break;
@@ -112,7 +116,8 @@ final class ImportExportDialog extends JDialog implements R,
                     callback.onImport(
                         classesSheet,
                         professorsSheet,
-                        classroomsSheet
+                        classroomsSheet,
+                        professorSpecializationsSheet
                     );
                 }
                 break;

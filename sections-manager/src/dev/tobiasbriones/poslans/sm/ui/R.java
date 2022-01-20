@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -8,9 +8,15 @@ package dev.tobiasbriones.poslans.sm.ui;
 interface R {
     String MW_TOOLBAR_OPEN_SECTION = "open-section";
 
+    String MW_TOOLBAR_SECTIONS_INFO = "sections-info";
+
+    String MW_TOOLBAR_CLASSROOMS_INFO = "classrooms-info";
+
     String MW_TOOLBAR_PROFESSORS = "professors";
 
     String MW_TOOLBAR_HISTORY = "history";
+
+    String MW_TOOLBAR_FILTER = "filter";
 
     String MW_TOOLBAR_CAREER_DATA = "career-data";
 
@@ -30,6 +36,9 @@ interface R {
 
     String SECTION_DIALOG_CANCEL = "cancel";
 
+    String SECTION_DIALOG_SELECT_CLASSROOM = "Select "
+                                             + "classroom";
+
     String SECTION_DIALOG_SAVE = "save";
 
     String CAREER_DIALOG_CAREER = "career";
@@ -47,6 +56,9 @@ interface R {
     String CAREER_DIALOG_ADD_PROFESSOR = "add-professor";
 
     String CAREER_DIALOG_ADD_CLASSROOM = "add-classroom";
+
+    String CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION =
+        "add-professor-specialization";
 
     String CAREER_DIALOG_DISCARD = "discard";
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.current;
@@ -16,8 +16,7 @@ public final class Time {
             if (str.contains(":")) {
                 final String hourStr = str.substring(0, str.indexOf(":"));
                 final String minuteStr = str.substring(
-                    str.indexOf(":") + 1,
-                    str.length()
+                    str.indexOf(":") + 1
                 );
                 hour = Integer.parseInt(hourStr);
                 minute = Integer.parseInt(minuteStr);
@@ -34,7 +33,6 @@ public final class Time {
         }
         return time;
     }
-
     private int hour;
     private int minute;
 
@@ -58,10 +56,10 @@ public final class Time {
     public String toString() {
         final String h = (hour > 9)
                          ? String.valueOf(hour)
-                         : "0" + String.valueOf(hour);
+                         : "0" + hour;
         final String m = (minute > 9)
                          ? String.valueOf(minute)
-                         : "0" + String.valueOf(minute);
+                         : "0" + minute;
         return h + ":" + m;
     }
 
@@ -80,6 +78,6 @@ public final class Time {
         final int n1 = (endTime0.getHour() * 60) + endTime0.getMinute();
         final int n2 = (startTime1.getHour() * 60) + startTime1.getMinute();
         final int n3 = (endTime1.getHour() * 60) + endTime1.getMinute();
-        return ((n2 >= n0 && n2 < n1) || (n3 > n0 && n3 <= n1)) ? true : false;
+        return (n2 >= n0 && n2 < n1) || (n3 > n0 && n3 <= n1);
     }
 }

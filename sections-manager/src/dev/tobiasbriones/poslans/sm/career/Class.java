@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
@@ -10,19 +10,22 @@ public final class Class {
     private final int weight;
     private final int daysPerWeek;
     private final float durationHours;
+    private final String tag;
 
     Class(
         String code,
         String name,
         int weight,
         int daysPerWeek,
-        float durationHours
+        float durationHours,
+        String tag
     ) {
         this.code = code.toUpperCase();
         this.name = name.toUpperCase();
         this.weight = weight;
         this.daysPerWeek = daysPerWeek;
         this.durationHours = durationHours;
+        this.tag = tag.toUpperCase();
     }
 
     // -------------------- GETTERS -------------------- //
@@ -44,6 +47,10 @@ public final class Class {
 
     public float getDurationHours() {
         return durationHours;
+    }
+
+    public String getTag() {
+        return tag;
     }
 
     @Override

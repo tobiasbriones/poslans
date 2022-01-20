@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm;
 
+import dev.tobiasbriones.poslans.sm.career.Class;
 import dev.tobiasbriones.poslans.sm.career.*;
 import dev.tobiasbriones.poslans.sm.ui.CareerDataDialog;
 import org.apache.poi.ss.usermodel.*;
@@ -17,12 +18,14 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Vector;
 
 final class CareerDataEditorUIController implements CareerDataDialog.Callback {
     private final CareerDataHolder careerData;
     private final ClassesEditor classesEditor;
     private final ProfessorsEditor professorsEditor;
     private final ClassroomsEditor classroomsEditor;
+    private final ProfessorSpecializationEditor professorSpecializationEditor;
     private final ApplicationMessageReporter amr;
     private CareerDataDialog dialog;
     private boolean hasChanges;
@@ -35,9 +38,15 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         this.classesEditor = new ClassesEditor();
         this.professorsEditor = new ProfessorsEditor();
         this.classroomsEditor = new ClassroomsEditor();
+        this.professorSpecializationEditor = new ProfessorSpecializationEditor();
         this.amr = amr;
         this.dialog = null;
         this.hasChanges = false;
+    }
+
+    @Override
+    public Vector<String> getProfessorSpecializations() {
+        return new Vector<String>(careerData.getProfessorSpecializations());
     }
 
     @Override
@@ -48,8 +57,9 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
             classesEditor.load();
             professorsEditor.load();
             classroomsEditor.load();
+            professorSpecializationEditor.load();
         }
-        catch (IOException e) {
+        catch (Exception e) {
             amr.showUnexpectedErrorMessage("Fail to load", e);
             dialog.dispose();
         }
@@ -67,11 +77,13 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
                 classesEditor.load();
                 professorsEditor.load();
                 classroomsEditor.load();
+                professorSpecializationEditor.load();
                 classesEditor.load(careerData.getClasses());
                 professorsEditor.load(careerData.getProfessors());
                 classroomsEditor.load(careerData.getClassrooms());
+                professorSpecializationEditor.load(careerData.getProfessorSpecializations());
             }
-            catch (IOException e) {
+            catch (Exception e) {
                 amr.showErrorMessage(
                     "Fail to save changes, please restart the app.",
                     e
@@ -92,11 +104,13 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
             classesEditor.load();
             professorsEditor.load();
             classroomsEditor.load();
+            professorSpecializationEditor.load();
             classesEditor.load(careerData.getClasses());
             professorsEditor.load(careerData.getProfessors());
             classroomsEditor.load(careerData.getClassrooms());
+            professorSpecializationEditor.load(careerData.getProfessorSpecializations());
         }
-        catch (IOException e) {
+        catch (Exception e) {
             amr.showUnexpectedErrorMessage("Fail to load", e);
             dialog.dispose();
         }
@@ -122,16 +136,17 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         String name,
         int weight,
         int days,
-        float duration
+        float duration,
+        String tag
     ) {
         hasChanges = true;
-        classesEditor.create(code, name, weight, days, duration);
+        classesEditor.create(code, name, weight, days, duration, tag);
         classesEditor.performLastChange(careerData.getClasses());
         dialog.updateClassesUI();
     }
 
     @Override
-    public void deleteClass(dev.tobiasbriones.poslans.sm.career.Class Class) {
+    public void deleteClass(Class Class) {
         hasChanges = true;
         classesEditor.delete(Class);
         classesEditor.performLastChange(careerData.getClasses());
@@ -139,9 +154,13 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
     }
 
     @Override
-    public void createProfessor(String name, Professor.Title title) {
+    public void createProfessor(
+        String name,
+        Professor.Title title,
+        String specialization
+    ) {
         hasChanges = true;
-        professorsEditor.create(name, title);
+        professorsEditor.create(name, title, specialization);
         professorsEditor.performLastChange(careerData.getProfessors());
         dialog.updateProfessorsUI();
     }
@@ -155,9 +174,29 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
     }
 
     @Override
-    public void createClassroom(String building, int classroomNumber) {
+    public void createProfessorSpecialization(String specialization) {
         hasChanges = true;
-        classroomsEditor.create(building, classroomNumber);
+        professorSpecializationEditor.create(specialization);
+        professorSpecializationEditor.performLastChange(careerData.getProfessorSpecializations());
+        dialog.updateProfessorSpecializationsUI();
+    }
+
+    @Override
+    public void deleteProfessorSpecialization(String specialization) {
+        hasChanges = true;
+        professorSpecializationEditor.delete(specialization);
+        professorSpecializationEditor.performLastChange(careerData.getProfessorSpecializations());
+        dialog.updateProfessorSpecializationsUI();
+    }
+
+    @Override
+    public void createClassroom(
+        String building,
+        int classroomNumber,
+        String description
+    ) {
+        hasChanges = true;
+        classroomsEditor.create(building, classroomNumber, description);
         classroomsEditor.performLastChange(careerData.getClassrooms());
         dialog.updateClassroomsUI();
     }
@@ -176,6 +215,7 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         classesEditor.clear();
         professorsEditor.clear();
         classroomsEditor.clear();
+        professorSpecializationEditor.clear();
         careerData.clear();
     }
 
@@ -188,9 +228,10 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
             classesEditor.save();
             professorsEditor.save();
             classroomsEditor.save();
+            professorSpecializationEditor.save();
         }
         catch (IOException e) {
-            amr.showErrorMessage("Fail to save", e);
+            amr.showErrorMessage("Fail to save. ", e);
         }
         hasChanges = false;
     }
@@ -201,6 +242,8 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         final Sheet classesSheet = workbook.createSheet("Classes");
         final Sheet professorsSheet = workbook.createSheet("Professors");
         final Sheet classroomsSheet = workbook.createSheet("Classrooms");
+        final Sheet professorSpecializationsSheet = workbook.createSheet(
+            "Professor specializations");
         final JFileChooser fileChooser = new JFileChooser();
         final CellStyle headerStyle = workbook.createCellStyle();
         final XSSFFont font = ((XSSFWorkbook) workbook).createFont();
@@ -210,10 +253,14 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         classesSheet.setColumnWidth(0, 6000);
         classesSheet.setColumnWidth(1, 12000);
         classesSheet.setColumnWidth(4, 4000);
+        classesSheet.setColumnWidth(5, 12000);
         professorsSheet.setColumnWidth(0, 12000);
         professorsSheet.setColumnWidth(1, 6000);
+        professorsSheet.setColumnWidth(2, 12000);
         classroomsSheet.setColumnWidth(0, 8000);
         classroomsSheet.setColumnWidth(1, 6000);
+        classroomsSheet.setColumnWidth(2, 16000);
+        professorSpecializationsSheet.setColumnWidth(0, 12000);
         font.setFontHeightInPoints((short) 12);
         font.setBold(true);
         headerStyle.setFont(font);
@@ -226,21 +273,25 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         header.setCellValue("NAME");
         header = row.createCell(2);
         header.setCellStyle(headerStyle);
-        header.setCellValue("WEIGHT");
+        header.setCellValue("CREDITS");
         header = row.createCell(3);
         header.setCellStyle(headerStyle);
         header.setCellValue("DAYS");
         header = row.createCell(4);
         header.setCellStyle(headerStyle);
         header.setCellValue("DURATION");
+        header = row.createCell(5);
+        header.setCellStyle(headerStyle);
+        header.setCellValue("TAG");
         x++;
-        for (dev.tobiasbriones.poslans.sm.career.Class Class : careerData.getClasses()) {
+        for (Class course : careerData.getClasses()) {
             row = classesSheet.createRow(x);
-            row.createCell(0).setCellValue(Class.getCode());
-            row.createCell(1).setCellValue(Class.getName());
-            row.createCell(2).setCellValue(Class.getWeight());
-            row.createCell(3).setCellValue(Class.getDaysPerWeek());
-            row.createCell(4).setCellValue(Class.getDurationHours());
+            row.createCell(0).setCellValue(course.getCode());
+            row.createCell(1).setCellValue(course.getName());
+            row.createCell(2).setCellValue(course.getWeight());
+            row.createCell(3).setCellValue(course.getDaysPerWeek());
+            row.createCell(4).setCellValue(course.getDurationHours());
+            row.createCell(5).setCellValue(course.getTag());
             x++;
         }
         x = 0;
@@ -251,12 +302,16 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         header = row.createCell(1);
         header.setCellStyle(headerStyle);
         header.setCellValue("TITLE");
+        header = row.createCell(2);
+        header.setCellStyle(headerStyle);
+        header.setCellValue("SPECIALIZATION");
         x++;
         for (Professor professor : careerData.getProfessors()) {
             row = professorsSheet.createRow(x);
             row.createCell(0).setCellValue(professor.getName());
             row.createCell(1)
                .setCellValue(professor.getTitle().toString().toUpperCase());
+            row.createCell(2).setCellValue(professor.getSpecialization());
             x++;
         }
         x = 0;
@@ -267,26 +322,41 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         header = row.createCell(1);
         header.setCellStyle(headerStyle);
         header.setCellValue("CLASSROOM NUMBER");
+        header = row.createCell(2);
+        header.setCellStyle(headerStyle);
+        header.setCellValue("DESCRIPTION");
         x++;
         for (Classroom classroom : careerData.getClassrooms()) {
             row = classroomsSheet.createRow(x);
             row.createCell(0).setCellValue(classroom.getBuilding());
             row.createCell(1).setCellValue(classroom.getClassroomNumber());
+            row.createCell(2).setCellValue(classroom.getDescription());
+            x++;
+        }
+        x = 0;
+        row = professorSpecializationsSheet.createRow(x);
+        header = row.createCell(0);
+        header.setCellStyle(headerStyle);
+        header.setCellValue("PROFESSOR SPECIALIZATION");
+        x++;
+        for (String specialization : careerData.getProfessorSpecializations()) {
+            row = professorSpecializationsSheet.createRow(x);
+            row.createCell(0).setCellValue(specialization);
             x++;
         }
         fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         if (fileChooser.showOpenDialog(dialog) == JFileChooser.APPROVE_OPTION) {
-            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
-            Date date = new Date();
-            String careerInfo[] = new String[2];
+            final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+            final Date date = new Date();
+            final String[] careerInfo = new String[2];
             try {
                 CareerInformation.loadInformation(careerInfo);
-                String dateStr = dateFormat.format(date).replace('/', '-')
-                                           .replace(':', ' ');
-                String fileName = "Sections Manager - " + careerInfo[1] + " data " + dateStr + ".xlsx";
-                File directory = fileChooser.getSelectedFile();
-                File fileLocation = new File(directory, fileName);
-                FileOutputStream outputStream = new FileOutputStream(
+                final String dateStr = dateFormat.format(date).replace('/', '-')
+                                                 .replace(':', ' ');
+                final String fileName = "Sections Manager - " + careerInfo[1] + " data " + dateStr + ".xlsx";
+                final File directory = fileChooser.getSelectedFile();
+                final File fileLocation = new File(directory, fileName);
+                final FileOutputStream outputStream = new FileOutputStream(
                     fileLocation);
                 workbook.write(outputStream);
                 workbook.close();

@@ -1,10 +1,9 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
 
-import dev.tobiasbriones.poslans.sm.career.Professor.Title;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -15,15 +14,21 @@ import java.util.List;
 public final class ProfessorsEditor extends Editor<Professor> {
     private static final String KEY_NAME = "name";
     private static final String KEY_TITLE = "title";
+    private static final String KEY_SPECIALIZATION = "specialization";
 
     public static JSONObject fromProfessorToJSON(Professor professor) {
-        return newProfessorJSON(professor.getName(), professor.getTitle());
+        return newProfessorJSON(
+            professor.getName(),
+            professor.getTitle(),
+            professor.getSpecialization()
+        );
     }
 
     public static Professor fromJSONToProfessor(JSONObject json) {
         return new Professor(
             json.getString(KEY_NAME),
-            Title.values()[json.getInt(KEY_TITLE)]
+            Professor.Title.values()[json.getInt(KEY_TITLE)],
+            json.getString(KEY_SPECIALIZATION)
         );
     }
 
@@ -37,7 +42,7 @@ public final class ProfessorsEditor extends Editor<Professor> {
     }
 
     @Override
-    protected JSONComparator getComparator() {
+    protected Editor.JSONComparator getComparator() {
         return (a, b) -> a.getString(KEY_NAME)
                           .compareToIgnoreCase(b.getString(KEY_NAME));
     }
@@ -61,7 +66,7 @@ public final class ProfessorsEditor extends Editor<Professor> {
     @Override
     public boolean delete(Professor professor) {
         final JSONArray array = getArray();
-        JSONObject current = null;
+        JSONObject current;
         for (int i = 0; i < array.length(); i++) {
             current = array.getJSONObject(i);
             if (current.getString(KEY_NAME).equals(professor.getName())) {
@@ -98,15 +103,24 @@ public final class ProfessorsEditor extends Editor<Professor> {
         change = null;
     }
 
-    public void create(String name, Title title) {
+    public void create(
+        String name,
+        Professor.Title title,
+        String specialization
+    ) {
         lastChange = CHANGE_CREATE;
-        getArray().put(newProfessorJSON(name, title));
+        getArray().put(newProfessorJSON(name, title, specialization));
     }
 
-    private static JSONObject newProfessorJSON(String name, Title title) {
+    private static JSONObject newProfessorJSON(
+        String name,
+        Professor.Title title,
+        String specialization
+    ) {
         final JSONObject professorJSON = new JSONObject();
         professorJSON.put(KEY_NAME, name);
         professorJSON.put(KEY_TITLE, title.ordinal());
+        professorJSON.put(KEY_SPECIALIZATION, specialization);
         return professorJSON;
     }
 }

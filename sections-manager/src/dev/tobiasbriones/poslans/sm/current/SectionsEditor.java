@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.current;
@@ -23,8 +23,7 @@ import java.util.List;
 
 public final class SectionsEditor {
     private static final String DATA_DIRECTORY = "sections-manager/data";
-    private static final String CURRENT_SECTIONS_FILE_PATH =
-        DATA_DIRECTORY + "/current";
+    private static final String CURRENT_SECTIONS_FILE_PATH = DATA_DIRECTORY + "/current";
     private static final String KEY_CLASS = "class";
     private static final String KEY_DAYS = "days";
     private static final String KEY_CLASSROOM = "classroom";
@@ -129,7 +128,7 @@ public final class SectionsEditor {
     }
 
     public boolean delete(int position) {
-        return (array.remove(position) != null) ? true : false;
+        return array.remove(position) != null;
     }
 
     public void clear() {
@@ -153,9 +152,6 @@ public final class SectionsEditor {
             fw = new FileWriter(CURRENT_SECTIONS_FILE_PATH);
             fw.write(jsonStr);
             fw.flush();
-        }
-        catch (IOException e) {
-            throw e;
         }
         finally {
             if (fw != null) {
@@ -183,7 +179,7 @@ public final class SectionsEditor {
 
     private static Section newSection(JSONObject sectionJSON) {
         final JSONArray daysArray = sectionJSON.getJSONArray(KEY_DAYS);
-        final int days[] = new int[daysArray.length()];
+        final int[] days = new int[daysArray.length()];
         for (int i = 0; i < days.length; i++) {
             days[i] = daysArray.getInt(i);
         }
@@ -207,25 +203,19 @@ public final class SectionsEditor {
         for (int i = 0; i < array.length(); i++) {
             values.add(array.getJSONObject(i));
         }
-        Collections.sort(values, new Comparator<JSONObject>() {
-
-            @Override
-            public int compare(JSONObject sectionA, JSONObject sectionB) {
-                final int order;
-                try {
-                    final JSONObject a = sectionA.getJSONObject(KEY_TIME);
-                    final JSONObject b = sectionB.getJSONObject(KEY_TIME);
-                    final int timeA = (a.getInt("hour") * 60) + a.getInt(
-                        "minute");
-                    final int timeB = (b.getInt("hour") * 60) + b.getInt(
-                        "minute");
-                    order = (timeA < timeB) ? -1 : ((timeA > timeB) ? 1 : 0);
-                }
-                catch (JSONException e) {
-                    return -1;
-                }
-                return order;
+        Collections.sort(values, (sectionA, sectionB) -> {
+            final int order;
+            try {
+                final JSONObject a = sectionA.getJSONObject(KEY_TIME);
+                final JSONObject b = sectionB.getJSONObject(KEY_TIME);
+                final int timeA = (a.getInt("hour") * 60) + a.getInt("minute");
+                final int timeB = (b.getInt("hour") * 60) + b.getInt("minute");
+                order = (timeA < timeB) ? -1 : ((timeA > timeB) ? 1 : 0);
             }
+            catch (JSONException e) {
+                return -1;
+            }
+            return order;
         });
         for (int i = 0; i < values.size(); i++) {
             sortedArray.put(values.get(i));

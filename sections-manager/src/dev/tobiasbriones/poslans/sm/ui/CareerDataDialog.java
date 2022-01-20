@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -18,16 +18,20 @@ import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.HashSet;
+import java.util.Vector;
 
 public final class CareerDataDialog extends JDialog implements WindowListener,
                                                                ActionListener,
                                                                MouseListener,
                                                                ImportExportDialog.Callback {
     private static final long serialVersionUID = -906303588392152876L;
-    private static final Dimension FRAME_SIZE = new Dimension(800, 360);
-    private static final Dimension TOOLBAR_SIZE = new Dimension(800, 56);
+    private static final Dimension FRAME_SIZE = new Dimension(1024, 360);
+    private static final Dimension TOOLBAR_SIZE = new Dimension(1024, 56);
 
     public interface Callback {
+        Vector<String> getProfessorSpecializations();
+
         void openEditor(CareerDataDialog dialog);
 
         void closeEditor();
@@ -42,18 +46,31 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         void createClass(
             String code,
             String name,
-            int weight,
+            int credits,
             int days,
-            float duration
+            float duration,
+            String classTag
         );
 
-        void deleteClass(Class Class);
+        void deleteClass(Class course);
 
-        void createProfessor(String name, Professor.Title title);
+        void createProfessor(
+            String name,
+            Professor.Title title,
+            String specialization
+        );
 
         void deleteProfessor(Professor professor);
 
-        void createClassroom(String building, int number);
+        void createProfessorSpecialization(String specialization);
+
+        void deleteProfessorSpecialization(String specialization);
+
+        void createClassroom(
+            String building,
+            int number,
+            String description
+        );
 
         void deleteClassroom(Classroom classroom);
 
@@ -69,9 +86,11 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
     private final DefaultListModel<Class> classesListModel;
     private final DefaultListModel<Professor> professorsListModel;
     private final DefaultListModel<Classroom> classroomListModel;
+    private final DefaultListModel<String> professorSpecializationsListModel;
     private final JList<Class> classesList;
     private final JList<Professor> professorsList;
     private final JList<Classroom> classroomsList;
+    private final JList<String> professorSpecializationsList;
     private final JPopupMenu popup;
     private JList<?> popupTarget;
 
@@ -86,9 +105,12 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         this.classesListModel = new DefaultListModel<>();
         this.professorsListModel = new DefaultListModel<>();
         this.classroomListModel = new DefaultListModel<>();
+        this.professorSpecializationsListModel = new DefaultListModel<>();
         this.classesList = new JList<>(classesListModel);
         this.professorsList = new JList<>(professorsListModel);
         this.classroomsList = new JList<>(classroomListModel);
+        this.professorSpecializationsList = new JList<>(
+            professorSpecializationsListModel);
         this.popup = new JPopupMenu();
         this.popupTarget = null;
         final JPanel panel = new JPanel();
@@ -98,9 +120,13 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         final JScrollPane classesScroll = new JScrollPane(classesList);
         final JScrollPane professorsScroll = new JScrollPane(professorsList);
         final JScrollPane classroomsScroll = new JScrollPane(classroomsList);
+        final JScrollPane professorSpecializationsScroll = new JScrollPane(
+            professorSpecializationsList);
         final JLabel classesLabel = new JLabel(Strings.CLASSES);
         final JLabel professorsLabel = new JLabel(Strings.PROFESSORS);
         final JLabel classroomsLabel = new JLabel(Strings.CLASSROOMS);
+        final JLabel professorSpecializationsLabel =
+            new JLabel(Strings.PROFESSOR_SPECIALIZATIONS);
         final JButton careerInfoButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_career_info.png")));
         final JButton importExportButton = new JButton(new ImageIcon(
@@ -112,6 +138,8 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
             new JButton(Strings.ADD.toUpperCase());
         final JButton addClassroomButton =
             new JButton(Strings.ADD.toUpperCase());
+        final JButton addProfessorSpecializationButton =
+            new JButton(Strings.ADD.toUpperCase());
         final JButton discardButton =
             new JButton(Strings.DISCARD.toUpperCase());
         final JButton saveButton = new JButton(Strings.SAVE.toUpperCase());
@@ -122,6 +150,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         classesList.addMouseListener(this);
         professorsList.addMouseListener(this);
         classroomsList.addMouseListener(this);
+        professorSpecializationsList.addMouseListener(this);
         // Set buttons
         careerInfoButton.setName(R.CAREER_DIALOG_CAREER);
         careerInfoButton.setToolTipText(Strings.CAREER_INFO_TIP);
@@ -138,6 +167,8 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         addProfessorButton.addActionListener(this);
         addClassroomButton.setName(R.CAREER_DIALOG_ADD_CLASSROOM);
         addClassroomButton.addActionListener(this);
+        addProfessorSpecializationButton.setName(R.CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION);
+        addProfessorSpecializationButton.addActionListener(this);
         discardButton.setName(R.CAREER_DIALOG_DISCARD);
         discardButton.addActionListener(this);
         saveButton.setName(R.CAREER_DIALOG_SAVE);
@@ -149,7 +180,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         deleteItem.addActionListener(this);
         popup.add(editItem);
         popup.add(deleteItem);
-        // Toolbar
+        // ToolBar
         toolBar.setSize(TOOLBAR_SIZE);
         toolBar.setLayout(new FlowLayout(FlowLayout.LEFT, 5, 0));
         toolBar.setBorder(BorderFactory.createMatteBorder(
@@ -180,6 +211,8 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         mainPanel.add(professorsLabel, gbc);
         gbc.gridx++;
         mainPanel.add(classroomsLabel, gbc);
+        gbc.gridx++;
+        mainPanel.add(professorSpecializationsLabel, gbc);
         // Row 2
         gbc.gridx = 0;
         gbc.gridy = 1;
@@ -191,6 +224,8 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         mainPanel.add(professorsScroll, gbc);
         gbc.gridx++;
         mainPanel.add(classroomsScroll, gbc);
+        gbc.gridx++;
+        mainPanel.add(professorSpecializationsScroll, gbc);
         // Row 3
         gbc.gridx = 0;
         gbc.gridy = 2;
@@ -204,6 +239,8 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         mainPanel.add(addProfessorButton, gbc);
         gbc.gridx++;
         mainPanel.add(addClassroomButton, gbc);
+        gbc.gridx++;
+        mainPanel.add(addProfessorSpecializationButton, gbc);
         // Actions panel
         actionsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
         actionsPanel.add(discardButton);
@@ -322,6 +359,10 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 else if (popupTarget == classroomsList) {
                     callback.deleteClassroom(classroomsList.getSelectedValue());
                 }
+                else if (popupTarget == professorSpecializationsList) {
+                    callback.deleteProfessorSpecialization(
+                        professorSpecializationsList.getSelectedValue());
+                }
                 popupTarget = null;
                 break;
             case R.CAREER_DIALOG_ADD_CLASS:
@@ -344,6 +385,16 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                     callback,
                     CareerDataInputDialog.TYPE_CLASSROOM
                 );
+                break;
+            case R.CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION:
+                final String specialization = JOptionPane.showInputDialog(
+                    this,
+                    Strings.NEW_PROFESSOR_SPECIALIZATION
+                );
+                if (specialization != null && !specialization.trim()
+                                                             .isEmpty()) {
+                    callback.createProfessorSpecialization(specialization);
+                }
                 break;
         }
     }
@@ -382,14 +433,19 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
     public void onImport(
         Sheet classesSheet,
         Sheet professorsSheet,
-        Sheet classroomsSheet
+        Sheet classroomsSheet,
+        Sheet professorSpecializationsSheet
     ) {
+        final HashSet<String> specializations = new HashSet<>();
         String classCode = null;
         String className = null;
+        String classTag = null;
         String professorName = null;
         String classroomBuilding = null;
+        String classroomDescription = null;
         Professor.Title professorTitle = null;
-        int classWeight = -1;
+        String professorSpecialization = null;
+        int classCredits = -1;
         int classDays = -1;
         float classDuration = -1.0f;
         int classroomNumber = -1;
@@ -397,6 +453,16 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         boolean isFirstRow = true;
         callback.clear();
         try {
+            for (Row row : professorSpecializationsSheet) {
+                if (isFirstRow) {
+                    isFirstRow = false;
+                    continue;
+                }
+                final Cell cell = row.getCell(0);
+                callback.createProfessorSpecialization(cell.getStringCellValue());
+                specializations.add(cell.getStringCellValue());
+            }
+            isFirstRow = true;
             for (Row row : classesSheet) {
                 if (isFirstRow) {
                     isFirstRow = false;
@@ -411,7 +477,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                             className = cell.getStringCellValue();
                             break;
                         case 2:
-                            classWeight = (int) cell.getNumericCellValue();
+                            classCredits = (int) cell.getNumericCellValue();
                             break;
                         case 3:
                             classDays = (int) cell.getNumericCellValue();
@@ -419,10 +485,13 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                         case 4:
                             classDuration = (float) cell.getNumericCellValue();
                             break;
+                        case 5:
+                            classTag = cell.getStringCellValue();
+                            break;
                     }
                     i++;
                 }
-                if (i != 5) {
+                if (i != 6) {
                     final String msg = "Please check your document, the "
                                        + "number of cells"
                                        + " don't match properly. Classes "
@@ -430,13 +499,24 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                     handleImportError(msg);
                     return;
                 }
+                if (!specializations.contains(classTag)) {
+                    final String msg =
+                        "Please check your document, the tag " + classTag
+                        + " for class " + classCode + " doesn"
+                        + "'t match with those in "
+                        + "Professor specializations sheet. "
+                        + "Classes sheet.";
+                    handleImportError(msg);
+                    return;
+                }
                 i = 0;
                 callback.createClass(
                     classCode,
                     className,
-                    classWeight,
+                    classCredits,
                     classDays,
-                    classDuration
+                    classDuration,
+                    classTag
                 );
             }
             isFirstRow = true;
@@ -454,10 +534,13 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                             professorTitle =
                                 Professor.Title.fromString(cell.getStringCellValue());
                             break;
+                        case 2:
+                            professorSpecialization = cell.getStringCellValue();
+                            break;
                     }
                     i++;
                 }
-                if (i != 2) {
+                if (i != 3) {
                     if (i == 1) {
                         professorTitle = Professor.Title.OTHER;
                     }
@@ -470,12 +553,26 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                         return;
                     }
                 }
+                if (!specializations.contains(professorSpecialization)) {
+                    final String msg = "Please check your document, the "
+                                       + "specialization " + professorSpecialization
+                                       + " for professor " + professorName +
+                                       " doesn't match with those in "
+                                       + "Professor specializations sheet. "
+                                       + "Professors sheet.";
+                    handleImportError(msg);
+                    return;
+                }
                 i = 0;
                 if (professorTitle == null) {
                     throw new NullPointerException("Wrong title for professor"
                                                    + " " + professorName);
                 }
-                callback.createProfessor(professorName, professorTitle);
+                callback.createProfessor(
+                    professorName,
+                    professorTitle,
+                    professorSpecialization
+                );
             }
             isFirstRow = true;
             for (Row row : classroomsSheet) {
@@ -497,10 +594,13 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                         case 1:
                             classroomNumber = (int) cell.getNumericCellValue();
                             break;
+                        case 2:
+                            classroomDescription = cell.getStringCellValue();
+                            break;
                     }
                     i++;
                 }
-                if (i != 2) {
+                if (i != 3) {
                     final String msg = "Please check your document, the "
                                        + "number of cells don't"
                                        + " match properly. Classrooms sheet.";
@@ -508,7 +608,11 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                     return;
                 }
                 i = 0;
-                callback.createClassroom(classroomBuilding, classroomNumber);
+                callback.createClassroom(
+                    classroomBuilding,
+                    classroomNumber,
+                    classroomDescription
+                );
             }
         }
         catch (NullPointerException e) {
@@ -548,10 +652,18 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         }
     }
 
+    public void updateProfessorSpecializationsUI() {
+        professorSpecializationsListModel.clear();
+        for (String specialization : info.getProfessorSpecializations()) {
+            professorSpecializationsListModel.addElement(specialization);
+        }
+    }
+
     public void updateUI() {
         updateClassesUI();
         updateProfessorsUI();
         updateClassroomsUI();
+        updateProfessorSpecializationsUI();
     }
 
     private void checkPopupMenu(MouseEvent e) {
@@ -566,10 +678,16 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 professorsList.setSelectedIndex(professorsList.locationToIndex(e.getPoint()));
                 popup.show(professorsList, e.getX(), e.getY());
             }
-            else {
+            else if (e.getSource() == classroomsList) {
                 popupTarget = classroomsList;
                 classroomsList.setSelectedIndex(classroomsList.locationToIndex(e.getPoint()));
                 popup.show(classroomsList, e.getX(), e.getY());
+            }
+            else {
+                popupTarget = professorSpecializationsList;
+                professorSpecializationsList.setSelectedIndex(
+                    professorSpecializationsList.locationToIndex(e.getPoint()));
+                popup.show(professorSpecializationsList, e.getX(), e.getY());
             }
         }
     }

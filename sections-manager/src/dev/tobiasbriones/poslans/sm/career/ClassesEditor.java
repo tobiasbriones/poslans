@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
@@ -14,17 +14,19 @@ import java.util.List;
 public final class ClassesEditor extends Editor<Class> {
     private static final String KEY_CODE = "code";
     private static final String KEY_NAME = "name";
-    private static final String KEY_WEIGHT = "weight";
+    private static final String KEY_CREDITS = "credits";
     private static final String KEY_DAYS = "days";
     private static final String KEY_DURATION = "duration";
+    private static final String KEY_TAG = "tag";
 
-    public static JSONObject fromClassToJSON(Class Class) {
+    public static JSONObject fromClassToJSON(Class course) {
         return newClassJSON(
-            Class.getCode(),
-            Class.getName(),
-            Class.getWeight(),
-            Class.getDaysPerWeek(),
-            Class.getDurationHours()
+            course.getCode(),
+            course.getName(),
+            course.getWeight(),
+            course.getDaysPerWeek(),
+            course.getDurationHours(),
+            course.getTag()
         );
     }
 
@@ -32,11 +34,13 @@ public final class ClassesEditor extends Editor<Class> {
         return new Class(
             classJSON.getString(KEY_CODE),
             classJSON.getString(KEY_NAME),
-            classJSON.getInt(KEY_WEIGHT),
+            classJSON.getInt(KEY_CREDITS),
             classJSON.getInt(KEY_DAYS),
-            classJSON.getFloat(KEY_DURATION)
+            classJSON.getFloat(KEY_DURATION),
+            classJSON.getString(KEY_TAG)
         );
     }
+
     private int lastChange;
     private Class change;
 
@@ -47,15 +51,9 @@ public final class ClassesEditor extends Editor<Class> {
     }
 
     @Override
-    protected JSONComparator getComparator() {
-        return new JSONComparator() {
-
-            @Override
-            public int compare(JSONObject a, JSONObject b) {
-                return a.getString(KEY_CODE)
-                        .compareToIgnoreCase(b.getString(KEY_CODE));
-            }
-        };
+    protected Editor.JSONComparator getComparator() {
+        return (a, b) -> a.getString(KEY_CODE)
+                          .compareToIgnoreCase(b.getString(KEY_CODE));
     }
 
     @Override
@@ -77,7 +75,7 @@ public final class ClassesEditor extends Editor<Class> {
     @Override
     public boolean delete(Class Class) {
         final JSONArray array = getArray();
-        JSONObject current = null;
+        JSONObject current;
         for (int i = 0; i < array.length(); i++) {
             current = array.getJSONObject(i);
             if (current.getString(KEY_CODE).equals(Class.getCode())) {
@@ -100,7 +98,7 @@ public final class ClassesEditor extends Editor<Class> {
                 break;
             case CHANGE_DELETE:
                 int i = 0;
-                for (dev.tobiasbriones.poslans.sm.career.Class Class : list) {
+                for (Class Class : list) {
                     if (Class.getCode().equals(change.getCode())) {
                         list.remove(i);
                         break;
@@ -118,10 +116,11 @@ public final class ClassesEditor extends Editor<Class> {
         String name,
         int weight,
         int days,
-        float duration
+        float duration,
+        String tag
     ) {
         lastChange = CHANGE_CREATE;
-        getArray().put(newClassJSON(code, name, weight, days, duration));
+        getArray().put(newClassJSON(code, name, weight, days, duration, tag));
     }
 
     private static JSONObject newClassJSON(
@@ -129,14 +128,16 @@ public final class ClassesEditor extends Editor<Class> {
         String name,
         int weight,
         int days,
-        float duration
+        float duration,
+        String tag
     ) {
         final JSONObject classJSON = new JSONObject();
         classJSON.put(KEY_CODE, code);
         classJSON.put(KEY_NAME, name);
-        classJSON.put(KEY_WEIGHT, weight);
+        classJSON.put(KEY_CREDITS, weight);
         classJSON.put(KEY_DAYS, days);
         classJSON.put(KEY_DURATION, duration);
+        classJSON.put(KEY_TAG, tag);
         return classJSON;
     }
 }

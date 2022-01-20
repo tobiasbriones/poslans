@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -28,13 +28,13 @@ public final class HistoryDialog extends JDialog implements Strings,
     private final JList<HistoryItem> list;
 
     public HistoryDialog(MainWindow mw, List<HistoryItem> history) {
-        super(mw, HISTORY);
+        super(mw, Strings.HISTORY);
         this.callback = mw;
         this.list = new JList<>();
         final JPanel panel = new JPanel();
         final JScrollPane scroll = new JScrollPane(list);
         final JButton saveCurrentButton =
-            new JButton(SAVE_CURRENT_DATA.toUpperCase());
+            new JButton(Strings.SAVE_CURRENT_DATA.toUpperCase());
         final DefaultListModel<HistoryItem> model = new DefaultListModel<>();
         for (HistoryItem item : history) {
             model.addElement(item);
@@ -69,7 +69,7 @@ public final class HistoryDialog extends JDialog implements Strings,
                 Desktop.getDesktop().open(list.getSelectedValue().getFile());
             }
             catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, FAIL + ". " + ex);
+                JOptionPane.showMessageDialog(this, Strings.FAIL + ". " + ex);
                 dispose();
             }
         }

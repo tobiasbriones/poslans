@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -15,9 +15,14 @@ import dev.tobiasbriones.poslans.sm.current.Time;
 import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
+import java.util.List;
 
 public final class SectionDialog extends JDialog implements R,
                                                             Strings,
@@ -26,7 +31,7 @@ public final class SectionDialog extends JDialog implements R,
     private static final long serialVersionUID = 8110170505164198763L;
 
     public interface Callback {
-        boolean openSection(
+        String openSection(
             int classValue,
             int professorValue,
             int classroomValue,
@@ -34,7 +39,7 @@ public final class SectionDialog extends JDialog implements R,
             int[] days
         );
 
-        boolean editSection(
+        String editSection(
             int classValue,
             int professorValue,
             int classroomValue,
@@ -55,12 +60,13 @@ public final class SectionDialog extends JDialog implements R,
     private final JCheckBox fridayCheckBox;
     private final JCheckBox saturdayCheckBox;
     private final JTextField timeTF;
+    private final List<Classroom> classrooms;
 
-    SectionDialog(MainWindow mw, CareerDataHolder careerData) {
+    public SectionDialog(MainWindow mw, CareerDataHolder careerData) {
         this(mw, careerData, null);
     }
 
-    SectionDialog(
+    public SectionDialog(
         MainWindow mw,
         CareerDataHolder careerData,
         Section edit
@@ -78,15 +84,15 @@ public final class SectionDialog extends JDialog implements R,
         this.fridayCheckBox = new JCheckBox(Days.DAYS[FRIDAY]);
         this.saturdayCheckBox = new JCheckBox(Days.DAYS[SATURDAY]);
         this.timeTF = new JTextField();
+        this.classrooms = careerData.getClassrooms();
         final JPanel panel = new JPanel();
         final JPanel mainPanel = new JPanel();
-        final JPanel mainPanelTop = new JPanel();
         final JPanel daysPanel = new JPanel();
         final JPanel bottomPanel = new JPanel();
-        final JLabel classLabel = new JLabel(CLASS);
-        final JLabel professorLabel = new JLabel(PROFESSOR);
-        final JLabel classroomLabel = new JLabel(CLASSROOM);
-        final JLabel timeLabel = new JLabel(TIME);
+        final JLabel classLabel = new JLabel(Strings.CLASS);
+        final JLabel professorLabel = new JLabel(Strings.PROFESSOR);
+        final JLabel classroomLabel = new JLabel(Strings.CLASSROOM);
+        final JLabel timeLabel = new JLabel(Strings.TIME);
         final JLabel daysLabel = new JLabel(Strings.DAYS);
         final ListComboBoxModel<Class> classesCBModel = new ListComboBoxModel<>(
             careerData.getClasses());
@@ -96,16 +102,22 @@ public final class SectionDialog extends JDialog implements R,
         final ListComboBoxModel<Professor> professorsCBModel =
             new ListComboBoxModel<>(
                 careerData.getProfessors());
-        final JButton cancelButton = new JButton(CANCEL.toUpperCase());
+        final JButton selectClassroomButton = new JButton(Strings.SELECT.toUpperCase());
+        final JButton cancelButton = new JButton(Strings.CANCEL.toUpperCase());
         final JButton saveButton = new JButton();
         final Border border = new EmptyBorder(5, 10, 5, 10);
+        final Border mainPanelBorder = BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(Color.decode("#212121")),
+            Strings.SECTION
+        );
+        final GridBagConstraints gbc = new GridBagConstraints();
         classesComboBox.setModel(classesCBModel);
         classesComboBox.addItemListener(e -> daysLabel.setText(Strings.DAYS + " (" + ((Class) e.getItem()).getDaysPerWeek() + ")"));
         classroomsComboBox.setModel(classroomsCBModel);
         professorsComboBox.setModel(professorsCBModel);
         if (edit == null) {
-            setTitle(OPEN_SECTION);
-            saveButton.setText(OPEN.toUpperCase());
+            setTitle(Strings.OPEN_SECTION);
+            saveButton.setText(Strings.OPEN.toUpperCase());
             // Default view configuration
             mondayCheckBox.setSelected(true);
             tuesdayCheckBox.setSelected(true);
@@ -114,21 +126,12 @@ public final class SectionDialog extends JDialog implements R,
             fridayCheckBox.setSelected(true);
         }
         else {
-            setTitle(EDIT_SECTION);
-            saveButton.setText(SAVE.toUpperCase());
+            setTitle(Strings.EDIT_SECTION);
+            saveButton.setText(Strings.SAVE.toUpperCase());
             restoreViewState(careerData, edit, timeTF);
         }
-        // Main panel
-        mainPanelTop.setLayout(new GridLayout(9, 1));
-        mainPanelTop.add(classLabel);
-        mainPanelTop.add(classesComboBox);
-        mainPanelTop.add(professorLabel);
-        mainPanelTop.add(professorsComboBox);
-        mainPanelTop.add(classroomLabel);
-        mainPanelTop.add(classroomsComboBox);
-        mainPanelTop.add(timeLabel);
-        mainPanelTop.add(timeTF);
-        mainPanelTop.add(daysLabel);
+        selectClassroomButton.setName(R.SECTION_DIALOG_SELECT_CLASSROOM);
+        selectClassroomButton.addActionListener(this);
         daysPanel.setLayout(new GridLayout(2, 3));
         daysPanel.add(mondayCheckBox);
         daysPanel.add(tuesdayCheckBox);
@@ -136,11 +139,36 @@ public final class SectionDialog extends JDialog implements R,
         daysPanel.add(thursdayCheckBox);
         daysPanel.add(fridayCheckBox);
         daysPanel.add(saturdayCheckBox);
-        mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
-        mainPanel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createLineBorder(
-            Color.decode("#212121")), "Section"));
-        mainPanel.add(mainPanelTop);
-        mainPanel.add(daysPanel);
+        // Main panel
+        mainPanel.setLayout(new GridBagLayout());
+        mainPanel.setBorder(mainPanelBorder);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.anchor = GridBagConstraints.WEST;
+        mainPanel.add(classLabel, gbc);
+        gbc.gridy++;
+        mainPanel.add(classesComboBox, gbc);
+        gbc.gridy++;
+        mainPanel.add(professorLabel, gbc);
+        gbc.gridy++;
+        mainPanel.add(professorsComboBox, gbc);
+        gbc.gridy++;
+        mainPanel.add(classroomLabel, gbc);
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.NONE;
+        mainPanel.add(selectClassroomButton, gbc);
+        gbc.gridy++;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        mainPanel.add(classroomsComboBox, gbc);
+        gbc.gridy++;
+        mainPanel.add(timeLabel, gbc);
+        gbc.gridy++;
+        mainPanel.add(timeTF, gbc);
+        gbc.gridy++;
+        mainPanel.add(daysLabel, gbc);
+        gbc.gridy++;
+        mainPanel.add(daysPanel, gbc);
         // Bottom panel
         cancelButton.setName(R.SECTION_DIALOG_CANCEL);
         cancelButton.addActionListener(this);
@@ -186,10 +214,19 @@ public final class SectionDialog extends JDialog implements R,
         return count;
     }
 
+    private void setClassroom(int classroomIndex) {
+        classroomsComboBox.setSelectedItem(classrooms.get(classroomIndex));
+        classroomsComboBox.requestFocusInWindow();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         final String name = ((Component) e.getSource()).getName();
-        boolean hasOverlap = false;
+        String overlapCheck = null;
+        if (name.equals(R.SECTION_DIALOG_SELECT_CLASSROOM)) {
+            new SelectClassroomDialog(this);
+            return;
+        }
         if (name.equals(R.SECTION_DIALOG_SAVE)) {
             final int classValue = classesComboBox.getSelectedIndex();
             final int professorValue = professorsComboBox.getSelectedIndex();
@@ -200,11 +237,11 @@ public final class SectionDialog extends JDialog implements R,
             // Data validation
             if (classValue == -1 || professorValue == -1 || classroomValue == -1 || timeTF.getText()
                                                                                           .isEmpty() || days.length == 0) {
-                JOptionPane.showMessageDialog(this, FILL_ALL_FIELDS);
+                JOptionPane.showMessageDialog(this, Strings.FILL_ALL_FIELDS);
                 return;
             }
             if (time == null) {
-                JOptionPane.showMessageDialog(this, INVALID_TIME);
+                JOptionPane.showMessageDialog(this, Strings.INVALID_TIME);
                 return;
             }
             if (mondayCheckBox.isSelected()) {
@@ -231,7 +268,7 @@ public final class SectionDialog extends JDialog implements R,
                 days[i] = SATURDAY;
             }
             if (isEditing) {
-                hasOverlap = !callback.editSection(
+                overlapCheck = callback.editSection(
                     classValue,
                     professorValue,
                     classroomValue,
@@ -240,7 +277,7 @@ public final class SectionDialog extends JDialog implements R,
                 );
             }
             else {
-                hasOverlap = !callback.openSection(
+                overlapCheck = callback.openSection(
                     classValue,
                     professorValue,
                     classroomValue,
@@ -249,8 +286,13 @@ public final class SectionDialog extends JDialog implements R,
                 );
             }
         }
-        if (hasOverlap) {
-            JOptionPane.showMessageDialog(this, SECTION_NOT_AVAILABLE);
+        if (overlapCheck != null) {
+            JOptionPane.showMessageDialog(
+                this,
+                overlapCheck,
+                Strings.OVERLAP,
+                JOptionPane.WARNING_MESSAGE
+            );
         }
         else {
             dispose();
@@ -311,6 +353,43 @@ public final class SectionDialog extends JDialog implements R,
                     saturdayCheckBox.setSelected(true);
                     break;
             }
+        }
+    }
+
+    private static final class SelectClassroomDialog extends JDialog {
+        private static final long serialVersionUID = -703601238222986271L;
+        private static final Dimension DIALOG_SIZE = new Dimension(480, 480);
+
+        public SelectClassroomDialog(SectionDialog sectionDialog) {
+            super(sectionDialog, Strings.SELECT_CLASSROOM);
+            final JPanel panel = new JPanel();
+            final DefaultListModel<String> listModel = new DefaultListModel<>();
+            final JList<String> list = new JList<>(listModel);
+            final JScrollPane scroll = new JScrollPane(list);
+            list.setFixedCellHeight(24);
+            scroll.setPreferredSize(DIALOG_SIZE);
+            for (Classroom classroom : sectionDialog.classrooms) {
+                listModel.addElement("<html><body style='font-family:Roboto;"
+                                     + "'>" + classroom.toString() + " "
+                                     + "<strong>" + classroom.getDescription() + "</strong></body></html>");
+            }
+            list.addListSelectionListener(e -> {
+                if (!e.getValueIsAdjusting()) {
+                    sectionDialog.setClassroom(list.getSelectedIndex());
+                    dispose();
+                }
+            });
+            panel.setLayout(new BorderLayout());
+            panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+            panel.add(scroll);
+            getContentPane().add(panel);
+            setSize(DIALOG_SIZE);
+            setResizable(false);
+            setModalityType(ModalityType.APPLICATION_MODAL);
+            setIconImage(Toolkit.getDefaultToolkit()
+                                .getImage("icons/ic_add.png"));
+            setLocationRelativeTo(null);
+            setVisible(true);
         }
     }
 }

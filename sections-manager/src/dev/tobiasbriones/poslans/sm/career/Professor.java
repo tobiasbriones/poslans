@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
@@ -32,7 +32,6 @@ public final class Professor {
             }
             return null;
         }
-
         private final String str;
 
         Title(String str) {
@@ -62,13 +61,14 @@ public final class Professor {
             return str;
         }
     }
-
     private final String name;
     private final Title title;
+    private final String specialization;
 
-    public Professor(String name, Title title) {
+    public Professor(String name, Title title, String specialization) {
         this.name = name.toUpperCase();
         this.title = title;
+        this.specialization = specialization.toUpperCase();
     }
 
     public String getName() {
@@ -81,6 +81,10 @@ public final class Professor {
 
     public Title getTitle() {
         return title;
+    }
+
+    public String getSpecialization() {
+        return specialization;
     }
 
     @Override

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
@@ -21,7 +21,7 @@ final class ProfessorsLoadDialog extends JDialog implements Strings {
         MainWindow mw,
         Enumeration<ProfessorAcademicLoad> loads
     ) {
-        super(mw, PROFESSORS_LOAD);
+        super(mw, Strings.PROFESSORS_LOAD);
         final JList<ProfessorAcademicLoad> list = new JList<>();
         final JPanel panel = new JPanel();
         final JPanel titlePanel = new JPanel();
@@ -31,8 +31,8 @@ final class ProfessorsLoadDialog extends JDialog implements Strings {
         titlePanel.setLayout(new BorderLayout());
         titlePanel.setBorder(new EmptyBorder(5, 15, 5, 30));
         titlePanel.setBackground(Color.decode("#F0F0F0"));
-        titlePanel.add(new JLabel(TITLE_PAL), BorderLayout.WEST);
-        titlePanel.add(new JLabel(TITLE_LOAD), BorderLayout.EAST);
+        titlePanel.add(new JLabel(Strings.TITLE_PAL), BorderLayout.WEST);
+        titlePanel.add(new JLabel(Strings.TITLE_LOAD), BorderLayout.EAST);
         while (loads.hasMoreElements()) {
             load = loads.nextElement();
             model.addItem(load);
@@ -85,6 +85,7 @@ final class ProfessorsLoadDialog extends JDialog implements Strings {
     }
 
     private static final class Row extends JPanel implements ListCellRenderer<ProfessorAcademicLoad> {
+
         private static final long serialVersionUID = -4529068666204573522L;
         private final JLabel labelLeft;
         private final JLabel labelRight;

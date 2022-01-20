@@ -1,14 +1,14 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
 
+import dev.tobiasbriones.poslans.sm.Main;
 import dev.tobiasbriones.poslans.sm.career.CareerDataHolder;
 import dev.tobiasbriones.poslans.sm.career.Class;
 import dev.tobiasbriones.poslans.sm.career.Classroom;
 import dev.tobiasbriones.poslans.sm.career.Professor;
-import dev.tobiasbriones.poslans.sm.Main;
 import dev.tobiasbriones.poslans.sm.current.HistoryItem;
 import dev.tobiasbriones.poslans.sm.current.ProfessorAcademicLoad;
 import dev.tobiasbriones.poslans.sm.current.Section;
@@ -23,6 +23,8 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.Enumeration;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public final class MainWindow extends JFrame implements R,
@@ -48,25 +50,35 @@ public final class MainWindow extends JFrame implements R,
     public interface Callback {
         CareerDataDialog.Callback getCareerDataDialogCallback();
 
+        List<String> getFilter();
+
+        void setFilter(List<String> filter);
+
         List<HistoryItem> getHistory();
 
+        HashMap<String, String> getClassroomsTakenHours();
+
         Enumeration<ProfessorAcademicLoad> getProfessorsLoad();
+
+        Iterator<Section> listSections();
 
         void createNewTerm(String name);
 
         void saveToHistory();
 
-        boolean openSection(
-            Class Class, Professor professor,
+        String openSection(
+            Class course, Professor professor,
             Classroom classroom, Time time, int[] days
         );
 
-        boolean editSection(
-            int position, Class Class, Professor professor,
+        String editSection(
+            int position, Class course, Professor professor,
             Classroom classroom, Time time, int[] days
         );
 
         void deleteSection(int position);
+
+        void setNoFilter();
     }
 
     private final CareerDataHolder careerData;
@@ -79,7 +91,7 @@ public final class MainWindow extends JFrame implements R,
     private Section popupTarget;
 
     public MainWindow(CareerDataHolder info, Callback callback) {
-        super("Sections Manager");
+        super(Strings.APP_NAME);
         this.careerData = info;
         this.callback = callback;
         this.list = new JList<>();
@@ -92,10 +104,16 @@ public final class MainWindow extends JFrame implements R,
         final JToolBar toolBar = new JToolBar();
         final JButton openSectionButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_add.png")));
+        final JButton sectionsInfoButton = new JButton(new ImageIcon(
+            Main.getIconPath("ic_sections_info.png")));
+        final JButton classroomsInfoButton = new JButton(new ImageIcon(
+            Main.getIconPath("ic_classroom.png")));
         final JButton professorsButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_professors.png")));
         final JButton historyButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_history.png")));
+        final JButton filterButton = new JButton(new ImageIcon(
+            Main.getIconPath("ic_filter.png")));
         final JButton careerDataButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_career_data.png")));
         final JButton aboutButton = new JButton(new ImageIcon(
@@ -103,8 +121,8 @@ public final class MainWindow extends JFrame implements R,
         final JButton newTermButton = new JButton();
         final JPanel topPanel = new JPanel();
         final JScrollPane scrollPane = new JScrollPane(list);
-        final JMenuItem menuEdit = new JMenuItem(EDIT);
-        final JMenuItem menuDelete = new JMenuItem(DELETE);
+        final JMenuItem menuEdit = new JMenuItem(Strings.EDIT);
+        final JMenuItem menuDelete = new JMenuItem(Strings.DELETE);
         // Set popup
         menuEdit.setName(R.MW_MENU_EDIT);
         menuEdit.addActionListener(this);
@@ -112,25 +130,37 @@ public final class MainWindow extends JFrame implements R,
         menuDelete.addActionListener(this);
         popup.add(menuEdit);
         popup.add(menuDelete);
-        // Toolbar
+        // ToolBar
         openSectionButton.setName(R.MW_TOOLBAR_OPEN_SECTION);
-        openSectionButton.setToolTipText(OPEN_SECTION_TIP);
+        openSectionButton.setToolTipText(Strings.OPEN_SECTION_TIP);
         openSectionButton.setBackground(TOP_BACKGROUND_COLOR);
         openSectionButton.addActionListener(this);
+        sectionsInfoButton.setName(R.MW_TOOLBAR_SECTIONS_INFO);
+        sectionsInfoButton.setToolTipText(Strings.SECTIONS_INFO_TIP);
+        sectionsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
+        sectionsInfoButton.addActionListener(this);
+        classroomsInfoButton.setName(R.MW_TOOLBAR_CLASSROOMS_INFO);
+        classroomsInfoButton.setToolTipText(Strings.CLASSROOMS_INFO_TIP);
+        classroomsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
+        classroomsInfoButton.addActionListener(this);
         professorsButton.setName(R.MW_TOOLBAR_PROFESSORS);
-        professorsButton.setToolTipText(PROFESSORS_TIP);
+        professorsButton.setToolTipText(Strings.PROFESSORS_TIP);
         professorsButton.setBackground(TOP_BACKGROUND_COLOR);
         professorsButton.addActionListener(this);
         historyButton.setName(R.MW_TOOLBAR_HISTORY);
-        historyButton.setToolTipText(HISTORY_TIP);
+        historyButton.setToolTipText(Strings.HISTORY_TIP);
         historyButton.setBackground(TOP_BACKGROUND_COLOR);
         historyButton.addActionListener(this);
+        filterButton.setName(R.MW_TOOLBAR_FILTER);
+        filterButton.setToolTipText(Strings.FILTER_TIP);
+        filterButton.setBackground(TOP_BACKGROUND_COLOR);
+        filterButton.addActionListener(this);
         careerDataButton.setName(R.MW_TOOLBAR_CAREER_DATA);
-        careerDataButton.setToolTipText(CAREER_DATA_TIP);
+        careerDataButton.setToolTipText(Strings.CAREER_DATA_TIP);
         careerDataButton.setBackground(TOP_BACKGROUND_COLOR);
         careerDataButton.addActionListener(this);
         aboutButton.setName(R.MW_TOOLBAR_ABOUT);
-        aboutButton.setToolTipText(ABOUT_TIP);
+        aboutButton.setToolTipText(Strings.ABOUT_TIP);
         aboutButton.setBackground(TOP_BACKGROUND_COLOR);
         aboutButton.addActionListener(this);
         toolBar.setMaximumSize(TOOLBAR_SIZE);
@@ -138,14 +168,17 @@ public final class MainWindow extends JFrame implements R,
         toolBar.setFloatable(false);
         toolBar.setBackground(TOP_BACKGROUND_COLOR);
         toolBar.add(openSectionButton);
+        toolBar.add(sectionsInfoButton);
+        toolBar.add(classroomsInfoButton);
         toolBar.add(professorsButton);
         toolBar.add(historyButton);
+        toolBar.add(filterButton);
         toolBar.add(careerDataButton);
         toolBar.add(aboutButton);
         // Top panel
         newTermButton.setName(R.MW_NEW_TERM);
         newTermButton.setText("<html><span style='font-family:Roboto;'>"
-                              + NEW_TERM.toUpperCase() + "</span></html>");
+                              + Strings.NEW_TERM.toUpperCase() + "</span></html>");
         newTermButton.addActionListener(this);
         topPanel.setMaximumSize(TOP_PANEL_SIZE);
         topPanel.setLayout(new BorderLayout());
@@ -190,11 +223,23 @@ public final class MainWindow extends JFrame implements R,
             case R.MW_TOOLBAR_OPEN_SECTION:
                 new SectionDialog(this, careerData);
                 break;
+            case R.MW_TOOLBAR_SECTIONS_INFO:
+                new SectionsInfoDialog(this, callback.listSections());
+                break;
+            case R.MW_TOOLBAR_CLASSROOMS_INFO:
+                new ClassroomsInfoDialog(
+                    this,
+                    callback.getClassroomsTakenHours()
+                );
+                break;
             case R.MW_TOOLBAR_PROFESSORS:
                 new ProfessorsLoadDialog(this, callback.getProfessorsLoad());
                 break;
             case R.MW_TOOLBAR_HISTORY:
                 new HistoryDialog(this, callback.getHistory());
+                break;
+            case R.MW_TOOLBAR_FILTER:
+                new FilterDialog(this, callback);
                 break;
             case R.MW_TOOLBAR_CAREER_DATA:
                 new CareerDataDialog(
@@ -205,12 +250,11 @@ public final class MainWindow extends JFrame implements R,
                 break;
             case R.MW_TOOLBAR_ABOUT:
                 final int aboutType = JOptionPane.INFORMATION_MESSAGE;
-                final Icon icon = new ImageIcon(Main.getIconPath("ic_about"
-                                                                 + ".png"));
+                final Icon icon = new ImageIcon("icons/ic_about.png");
                 JOptionPane.showMessageDialog(
                     this,
-                    ABOUT_MSG,
-                    ABOUT,
+                    Strings.ABOUT_MSG,
+                    Strings.ABOUT,
                     aboutType,
                     icon
                 );
@@ -220,21 +264,23 @@ public final class MainWindow extends JFrame implements R,
                 final int msgType = JOptionPane.QUESTION_MESSAGE;
                 final int option = JOptionPane.showConfirmDialog(
                     this,
-                    NEW_TERM_MSG,
-                    NEW_TERM,
+                    Strings.NEW_TERM_MSG,
+                    Strings.NEW_TERM,
                     termType,
                     msgType
                 );
                 if (option == JOptionPane.YES_OPTION) {
                     final String newTermName = JOptionPane.showInputDialog(
                         this,
-                        SET_TERM_NAME
+                        Strings.SET_TERM_NAME
                     );
                     if (newTermName != null && !newTermName.isEmpty()) {
                         callback.createNewTerm(newTermName);
                     }
                     else {
-                        JOptionPane.showMessageDialog(this, ACTION_CANCELLED);
+                        JOptionPane.showMessageDialog(this,
+                                                      Strings.ACTION_CANCELLED
+                        );
                     }
                 }
                 break;
@@ -279,40 +325,40 @@ public final class MainWindow extends JFrame implements R,
         checkPopupMenu(e);
     }
 
-    // Returns true from Main when there's no overlap so the dialog can be
+    // Returns null from Main when there's no overlap so the dialog can be
     // closed
     @Override
-    public boolean openSection(
+    public String openSection(
         int classValue, int professorValue, int classroomValue,
         Time time, int[] days
     ) {
-        final Class Class = careerData.getClasses().get(classValue);
+        final Class course = careerData.getClasses().get(classValue);
         final Professor professor = careerData.getProfessors()
                                               .get(professorValue);
         final Classroom classroom = careerData.getClassrooms()
                                               .get(classroomValue);
-        if (!checkSection(Class, professorValue, classroomValue, days)) {
-            return true;
+        if (!checkSection(course, professorValue, classroomValue, days)) {
+            return null;
         }
-        return callback.openSection(Class, professor, classroom, time, days);
+        return callback.openSection(course, professor, classroom, time, days);
     }
 
     @Override
-    public boolean editSection(
+    public String editSection(
         int classValue, int professorValue, int classroomValue,
         Time time, int[] days
     ) {
-        final Class Class = careerData.getClasses().get(classValue);
+        final Class course = careerData.getClasses().get(classValue);
         final Professor professor = careerData.getProfessors()
                                               .get(professorValue);
         final Classroom classroom = careerData.getClassrooms()
                                               .get(classroomValue);
-        if (!checkSection(Class, professorValue, classroomValue, days)) {
-            return true;
+        if (!checkSection(course, professorValue, classroomValue, days)) {
+            return null;
         }
         return callback.editSection(
             list.getSelectedIndex(),
-            Class,
+            course,
             professor,
             classroom,
             time,
@@ -333,8 +379,8 @@ public final class MainWindow extends JFrame implements R,
     }
 
     public void welcome() {
-        final String msg = WELCOME_MSG;
-        final String title = GETTING_STARTED;
+        final String msg = Strings.WELCOME_MSG;
+        final String title = Strings.GETTING_STARTED;
         final int optionType = JOptionPane.OK_CANCEL_OPTION;
         final int msgType = JOptionPane.INFORMATION_MESSAGE;
         final int option = JOptionPane.showConfirmDialog(
@@ -371,20 +417,20 @@ public final class MainWindow extends JFrame implements R,
     }
 
     private boolean checkSection(
-        Class Class,
+        Class course,
         int professorValue,
         int classroomValue,
         int[] days
     ) {
         // Class required days validation
-        if (Class.getDaysPerWeek() != days.length) {
+        if (course.getDaysPerWeek() != days.length) {
             final String msg =
-                Class + " requires " + Class.getDaysPerWeek() + " "
-                + "days";
+                course + " requires " + course.getDaysPerWeek() +
+                " days";
             JOptionPane.showMessageDialog(
                 this,
                 msg,
-                CHECK_YOUR_INPUT,
+                Strings.CHECK_YOUR_INPUT,
                 JOptionPane.WARNING_MESSAGE
             );
             return false;
@@ -430,14 +476,12 @@ public final class MainWindow extends JFrame implements R,
             final String b = "<html><span style='font-family:Roboto Light;"
                              + "font-size:10px;'>";
             final String c = "<html><span style='font-family:Roboto;"
-                             + "font-size:10px;color:#737373;"
-                             + "'>";
+                             + "font-size:10px;color:#737373;'>";
             labelLeft0.setText(a + section.getSectionClass()
                                           .toString() + "</span></html>");
             labelLeft1.setText(b + section.getClassroom().toString()
                                + "<span style='font-family:Roboto;"
-                               + "font-style:italic;color:#737373;"
-                               + "'>	"
+                               + "font-style:italic;color:#737373;'>	"
                                + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + section.getMiniDays()
                                + " &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"
                                + "</span></span></html>");
@@ -454,6 +498,77 @@ public final class MainWindow extends JFrame implements R,
                 panelLeft.setBackground(BACKGROUND_COLOR);
             }
             return this;
+        }
+    }
+
+    private static final class FilterDialog extends JDialog implements ActionListener {
+
+        private static final long serialVersionUID = 8131151297294945556L;
+        private final Callback callback;
+        private final JList<String> list;
+
+        FilterDialog(MainWindow mw, Callback callback) {
+            super(mw, Strings.FILTER_TIP);
+            this.callback = callback;
+            this.list = new JList<>();
+            final JPanel panel = new JPanel();
+            final DefaultListModel<String> listModel = new DefaultListModel<>();
+            final JPanel actionsPanel = new JPanel();
+            final JButton discardButton = new JButton(Strings.DISCARD.toUpperCase());
+            final JButton noFilterButton = new JButton(Strings.NO_FILTER.toUpperCase());
+            final JButton saveButton = new JButton(Strings.SAVE.toUpperCase());
+            final List<String> filter = callback.getFilter();
+            final int[] selectedIndices = new int[filter.size()];
+            int i = 0;
+            int k = 0;
+            list.setModel(listModel);
+            list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+            for (String specialization : callback.getCareerDataDialogCallback()
+                                                 .getProfessorSpecializations()) {
+                if (filter.contains(specialization)) {
+                    selectedIndices[k] = i;
+                    k++;
+                }
+                listModel.addElement(specialization);
+                i++;
+            }
+            list.setSelectedIndices(selectedIndices);
+            discardButton.setName("discard");
+            discardButton.addActionListener(this);
+            noFilterButton.setName("nofilter");
+            noFilterButton.addActionListener(this);
+            saveButton.setName("save");
+            saveButton.addActionListener(this);
+            // Actions panel
+            actionsPanel.setLayout(new FlowLayout(FlowLayout.RIGHT));
+            actionsPanel.add(discardButton);
+            actionsPanel.add(noFilterButton);
+            actionsPanel.add(saveButton);
+            // Panel
+            panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+            panel.setBorder(new EmptyBorder(5, 15, 0, 15));
+            panel.add(new JScrollPane(list));
+            panel.add(actionsPanel);
+            getContentPane().add(panel);
+            pack();
+            setResizable(false);
+            setLocationRelativeTo(null);
+            setModalityType(ModalityType.APPLICATION_MODAL);
+            setIconImage(Toolkit.getDefaultToolkit()
+                                .getImage("icons/ic_filter.png"));
+            setVisible(true);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final String name = ((Component) e.getSource()).getName();
+            if (name.equals("nofilter")) {
+                callback.setNoFilter();
+            }
+            else if (name.equals("save")) {
+                callback.setFilter(list.getSelectedValuesList());
+            }
+            dispose();
         }
     }
 }

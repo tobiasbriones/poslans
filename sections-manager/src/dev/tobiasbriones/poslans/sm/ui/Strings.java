@@ -1,16 +1,24 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.ui;
 
 // Anti-pattern!
-interface Strings {
+public interface Strings {
+    String APP_NAME = "Sections Manager";
+
     String OPEN_SECTION_TIP = "Open a new section";
+
+    String SECTIONS_INFO_TIP = "Sections info";
+
+    String CLASSROOMS_INFO_TIP = "Classrooms info";
 
     String PROFESSORS_TIP = "View professors academic load";
 
     String HISTORY_TIP = "View history";
+
+    String FILTER_TIP = "Filter sections";
 
     String CAREER_DATA_TIP = "View and load your career's"
                              + " data";
@@ -48,6 +56,9 @@ interface Strings {
 
     String CHECK_YOUR_INPUT = "Check your input";
 
+    String CORRUPTED_FILE = "Corrupted file, please use a"
+                            + " backup if needed";
+
     String CAREER = "Career";
 
     String ADD = "Add";
@@ -55,6 +66,20 @@ interface Strings {
     String DISCARD = "Discard";
 
     String SAVE = "Save";
+
+    String CREATE_CLASS = "Create class";
+
+    String EDIT_CLASS = "Edit class";
+
+    String DESCRIPTION = "Description";
+
+    String TAG = "Tag";
+
+    String SELECT = "Select";
+
+    String SECTION = "Section";
+
+    String SELECT_CLASSROOM = "Select classroom";
 
     String UNIVERSITY_BELONG = "What university do you "
                                + "belong?";
@@ -64,6 +89,15 @@ interface Strings {
     String FILL_ALL_FIELDS = "You didn't fill all the "
                              + "fields";
 
+    String SPECIALIZATION = "Specialization";
+
+    String PROFESSOR_SPECIALIZATIONS = "Professor "
+                                       + "specializations";
+
+    String NEW_PROFESSOR_SPECIALIZATION = "New professor "
+                                          +
+                                          "specialization";
+
     String DELETE_CAREER_DATA = "<html>Delete career "
                                 + "data?<br>This can't be"
                                 + " undone</html>";
@@ -71,6 +105,8 @@ interface Strings {
     String HISTORY = "History";
 
     String SAVE_CURRENT_DATA = "Save current data";
+
+    String SUCCESSFULLY_SAVED = "Successfully saved";
 
     String FAIL = "Fail";
 
@@ -134,7 +170,7 @@ interface Strings {
 
     String CLASS_NAME = "Class name";
 
-    String WEIGHT = "Weight";
+    String CREDITS = "Credits";
 
     String DAYS_PER_WEEK = "Days per week";
 
@@ -152,6 +188,8 @@ interface Strings {
 
     String BUILDING = "Building";
 
+    String NO_FILTER = "No filter";
+
     String CLASSROOM_NUMBER = "Classroom number";
 
     String EDIT_CLASSROOM = "Edit classroom";
@@ -159,6 +197,22 @@ interface Strings {
     String CREATE_CLASSROOM = "Create classroom";
 
     String PROFESSORS_LOAD = "Professors academic load";
+
+    String OVERLAP = "Overlap";
+
+    String TIME_OVERLAP = "Time overlap";
+
+    String DAY_OVERLAP = "Day overlap";
+
+    String CLASSROOM_OVERLAP = "Classroom overlap";
+
+    String PROFESSOR_OVERLAP = "Professor overlap";
+
+    String SECTIONS_INFO_TITLE = "Sections opened per "
+                                 + "class";
+
+    String TOTAL_SECTIONS_OPENED = "Total opened "
+                                   + "sections: ";
 
     String TITLE_PAL = "<html><span "
                        + "style='font-weight:900;"
@@ -170,7 +224,7 @@ interface Strings {
 
     String ABOUT = "About";
 
-    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.1"
+    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.2"
                        + ".0<br>This software includes"
                        + " the following libraries:<br>- Apache POI library "
                        + "under "
@@ -181,5 +235,5 @@ interface Strings {
                        + ".org/'>http://www.json.org/</a><br>"
                        + "<strong>© Tobias Briones, "
                        + "Sections "
-                       + "Manager 2017</strong></html>";
+                       + "Manager 2017-2018</strong></html>";
 }

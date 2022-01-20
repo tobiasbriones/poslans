@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
@@ -11,11 +11,13 @@ public final class CareerDataHolder {
     private final List<Class> classes;
     private final List<Professor> professors;
     private final List<Classroom> classrooms;
+    private final List<String> professorSpecializations;
 
     public CareerDataHolder() {
         this.classes = new ArrayList<>();
         this.professors = new ArrayList<>();
         this.classrooms = new ArrayList<>();
+        this.professorSpecializations = new ArrayList<>();
     }
 
     public boolean isEmpty() {
@@ -34,9 +36,14 @@ public final class CareerDataHolder {
         return classrooms;
     }
 
+    public List<String> getProfessorSpecializations() {
+        return professorSpecializations;
+    }
+
     public void clear() {
         classes.clear();
         professors.clear();
         classrooms.clear();
+        professorSpecializations.clear();
     }
 }

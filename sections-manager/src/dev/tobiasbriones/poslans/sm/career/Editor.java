@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.career;
@@ -50,7 +50,7 @@ abstract class Editor<T> {
 
     protected abstract JSONComparator getComparator();
 
-    public final void load() throws IOException {
+    public final void load() throws Exception {
         check();
         final Path path = Paths.get(".", filePath);
         final String str = new String(Files.readAllBytes(path));
@@ -60,8 +60,7 @@ abstract class Editor<T> {
         catch (JSONException e) {
             clear();
             save();
-            throw new IOException(
-                "Corrupted file, please use a backup if needed.");
+            throw new Exception("Corrupted file, please use a backup if needed.");
         }
     }
 
@@ -70,10 +69,10 @@ abstract class Editor<T> {
     }
 
     public final void save() throws IOException {
-        final String jsonStr;
-        if (array == null) {
+        if (!isLoaded()) {
             throw new IOException("File hasn't been loaded.");
         }
+        final String jsonStr;
         jsonStr = sort(array, getComparator()).toString();
         FileWriter fw = null;
         if (jsonStr == null) {
@@ -86,9 +85,6 @@ abstract class Editor<T> {
             fw.write(jsonStr);
             fw.flush();
         }
-        catch (IOException e) {
-            throw e;
-        }
         finally {
             if (fw != null) {
                 fw.close();
@@ -96,7 +92,7 @@ abstract class Editor<T> {
         }
     }
 
-    private final void check() throws IOException {
+    protected final void check() throws IOException {
         final File data = new File(DATA_DIRECTORY);
         final File file = new File(filePath);
         if (!data.exists() || !data.isDirectory()) {

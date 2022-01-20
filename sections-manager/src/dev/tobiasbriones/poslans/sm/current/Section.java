@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.current;
@@ -7,6 +7,7 @@ package dev.tobiasbriones.poslans.sm.current;
 import dev.tobiasbriones.poslans.sm.career.Class;
 import dev.tobiasbriones.poslans.sm.career.Classroom;
 import dev.tobiasbriones.poslans.sm.career.Professor;
+import dev.tobiasbriones.poslans.sm.ui.Strings;
 
 public final class Section implements Days {
     /**
@@ -14,12 +15,13 @@ public final class Section implements Days {
      * days - If the class is updated or changed, it will need to be deleted and
      * created again - Time is military format
      */
-    private final dev.tobiasbriones.poslans.sm.career.Class Class;
+    private final Class Class;
     private final int[] days;
     private final Classroom classroom;
     private final Time time;
     private final Time endTime;
     private final Professor professor;
+    private String overlapResult;
 
     Section(
         Class Class,
@@ -34,6 +36,7 @@ public final class Section implements Days {
         this.time = time;
         this.endTime = endTime();
         this.professor = professor;
+        this.overlapResult = null;
     }
 
     // -------------------- GETTERS -------------------- //
@@ -92,6 +95,12 @@ public final class Section implements Days {
         return sb.toString();
     }
 
+    public String takeOverlapResult() {
+        final String result = overlapResult;
+        overlapResult = null;
+        return result;
+    }
+
     // -------------------- PUBLIC METHODS -------------------- //
     // overlap iff (same hour & same day) & (same classroom | same professor)
     public boolean overlaps(Section section) {
@@ -99,16 +108,31 @@ public final class Section implements Days {
         final boolean dayOverlap = dayOverlap(section);
         final boolean classRoomOverlap = classRoomOverlap(section);
         final boolean professorOverlap = professorOverlap(section);
-        return ((timeOverlap && dayOverlap) && (classRoomOverlap || professorOverlap))
-               ? true
-               : false;
+        final boolean hasOverlap = (timeOverlap && dayOverlap) && (classRoomOverlap || professorOverlap);
+        if (!hasOverlap) {
+            overlapResult = null;
+            return false;
+        }
+        if ((timeOverlap && dayOverlap) && classRoomOverlap) {
+            overlapResult = getOverlapMessage(
+                Strings.CLASSROOM_OVERLAP,
+                section
+            );
+        }
+        else {
+            overlapResult = getOverlapMessage(
+                Strings.PROFESSOR_OVERLAP,
+                section
+            );
+        }
+        return true;
     }
 
     // -------------------- PRIVATE METHODS -------------------- //
     private Time endTime() {
         int hour;
         int minute;
-        float duration = Class.getDurationHours();
+        final float duration = Class.getDurationHours();
         if (duration == ((int) duration)) {
             hour = time.getHour() + ((int) duration);
             minute = time.getMinute();
@@ -145,15 +169,22 @@ public final class Section implements Days {
     }
 
     private boolean classRoomOverlap(Section section) {
-        return (
-                   section.getClassroom().getBuilding()
-                          .equals(classroom.getBuilding())
-                   && section.getClassroom()
-                             .getClassroomNumber() == classroom.getClassroomNumber()
-               ) ? true : false;
+        return section.getClassroom().getBuilding()
+                      .equals(classroom.getBuilding())
+               && section.getClassroom()
+                         .getClassroomNumber() == classroom.getClassroomNumber();
     }
 
     private boolean professorOverlap(Section section) {
         return section.getProfessor().getName().equals(professor.getName());
+    }
+
+    private String getOverlapMessage(String overlap, Section overlapSection) {
+        final String thisStr = toString().replace('\n', ' ');
+        final String overlapSectionStr = overlapSection.toString()
+                                                       .replace('\n', ' ');
+        return "<html><body><strong>" + overlap + ": </strong> " + thisStr +
+               "<br><strong>VS: </strong>" + overlapSectionStr + "</body"
+               + "></html>";
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm;
@@ -9,13 +9,15 @@ import dev.tobiasbriones.poslans.sm.career.*;
 import dev.tobiasbriones.poslans.sm.current.*;
 import dev.tobiasbriones.poslans.sm.ui.CareerDataDialog;
 import dev.tobiasbriones.poslans.sm.ui.MainWindow;
+import dev.tobiasbriones.poslans.sm.ui.Strings;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Enumeration;
+import java.util.*;
 import java.util.List;
 
 /**
@@ -57,14 +59,16 @@ public final class Main extends Application implements MainWindow.Callback {
     private final List<Section> sections;
     private final MainWindow mw;
     private final String[] careerInfo;
+    private final List<String> filter;
     private String term;
 
-    private Main() {
+    public Main() {
         this.careerData = new CareerDataHolder();
         this.sectionsEditor = new SectionsEditor();
         this.sections = new ArrayList<>();
         this.mw = new MainWindow(careerData, this);
         this.careerInfo = new String[2];
+        this.filter = new ArrayList<>();
         try {
             this.term = Term.load();
         }
@@ -90,6 +94,24 @@ public final class Main extends Application implements MainWindow.Callback {
     }
 
     @Override
+    public List<String> getFilter() {
+        return filter;
+    }
+
+    @Override
+    public void setFilter(List<String> filter) {
+        try {
+            AppConfig.saveFilter(filter);
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(mw, e.getMessage());
+        }
+        this.filter.clear();
+        this.filter.addAll(filter);
+        updateUI();
+    }
+
+    @Override
     public List<HistoryItem> getHistory() {
         try {
             return History.loadHistory();
@@ -101,8 +123,36 @@ public final class Main extends Application implements MainWindow.Callback {
     }
 
     @Override
+    public HashMap<String, String> getClassroomsTakenHours() {
+        final HashMap<String, String> classroomsTakenHours = new HashMap<>();
+        Classroom currentClassroom;
+        String currentStr;
+        for (Classroom classroom : careerData.getClassrooms()) {
+            classroomsTakenHours.put(classroom.toString(), "");
+        }
+        for (Section section : sections) {
+            currentClassroom = section.getClassroom();
+            if (classroomsTakenHours.containsKey(currentClassroom.toString())) {
+                currentStr =
+                    classroomsTakenHours.get(currentClassroom.toString());
+                currentStr += " " + section.getTime() + " ";
+                classroomsTakenHours.put(
+                    currentClassroom.toString(),
+                    currentStr
+                );
+            }
+        }
+        return classroomsTakenHours;
+    }
+
+    @Override
     public Enumeration<ProfessorAcademicLoad> getProfessorsLoad() {
         return ProfessorAcademicLoad.get(sections, careerData.getProfessors());
+    }
+
+    @Override
+    public Iterator<Section> listSections() {
+        return sections.iterator();
     }
 
     @Override
@@ -124,21 +174,21 @@ public final class Main extends Application implements MainWindow.Callback {
     @Override
     public void saveToHistory() {
         if (sections.isEmpty()) {
-            showInfoMessage("Nothing to save!");
+            //showInfoMessage("Nothing to save!");
             return;
         }
         try {
             History.save(sections, careerInfo[1], term);
-            showInfoMessage("Successfully saved");
+            showInfoMessage(Strings.SUCCESSFULLY_SAVED);
         }
         catch (IOException e) {
-            showErrorMessage("Fail to save.", e);
+            showErrorMessage("Fail to save. ", e);
         }
     }
 
-    // Returns true when there's no overlap
+    // Returns null when there's no overlap
     @Override
-    public boolean openSection(
+    public String openSection(
         Class Class,
         Professor professor,
         Classroom classroom,
@@ -152,54 +202,56 @@ public final class Main extends Application implements MainWindow.Callback {
             time,
             professor
         );
+        final String check = checkOverlapping(newSection, null);
         // Overlapping verification
-        if (!checkOverlapping(newSection, null)) {
+        if (check != null) {
             sectionsEditor.delete(sectionsEditor.getSize() - 1);
-            return false;
+            return check;
         }
         if (!save()) {
-            return true;
+            return null;
         }
         loadData();
         updateUI();
-        return true;
+        return null;
     }
 
     @Override
-    public boolean editSection(
+    public String editSection(
         int position,
-        Class Class,
+        Class course,
         Professor professor,
         Classroom classroom,
         Time time,
         int[] days
     ) {
         // Overlapping verification - Create temporarily section
-        if (!checkOverlapping(sectionsEditor.openSection(
-            Class,
+        final String check = checkOverlapping(sectionsEditor.openSection(
+            course,
             days,
             classroom,
             time,
             professor
-        ), sections.get(position))) {
+        ), sections.get(position));
+        if (check != null) {
             sectionsEditor.delete(sectionsEditor.getSize() - 1);
-            return false;
+            return check;
         }
         sectionsEditor.delete(sectionsEditor.getSize() - 1);
         sectionsEditor.editSection(
             position,
-            Class,
+            course,
             days,
             classroom,
             time,
             professor
         );
         if (!save()) {
-            return true;
+            return null;
         }
         loadData();
         updateUI();
-        return true;
+        return null;
     }
 
     @Override
@@ -210,11 +262,25 @@ public final class Main extends Application implements MainWindow.Callback {
         updateUI();
     }
 
+    @Override
+    public void setNoFilter() {
+        try {
+            AppConfig.saveNoFilter();
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(mw, e.getMessage());
+        }
+        filter.clear();
+        updateUI();
+    }
+
     // -------------------- PRIVATE METHODS -------------------- //
     private void loadData() {
         final ClassesEditor classEditor = new ClassesEditor();
         final ProfessorsEditor professorEditor = new ProfessorsEditor();
         final ClassroomsEditor classroomEditor = new ClassroomsEditor();
+        final ProfessorSpecializationEditor specializationEditor =
+            new ProfessorSpecializationEditor();
         careerData.clear();
         sections.clear();
         try {
@@ -222,14 +288,34 @@ public final class Main extends Application implements MainWindow.Callback {
             classEditor.load();
             professorEditor.load();
             classroomEditor.load();
+            specializationEditor.load();
             classEditor.load(careerData.getClasses());
             professorEditor.load(careerData.getProfessors());
             classroomEditor.load(careerData.getClassrooms());
+            specializationEditor.load(careerData.getProfessorSpecializations());
             sectionsEditor.load();
             sectionsEditor.load(sections);
+            final JSONArray filterArray = AppConfig.loadFilter();
+            filter.clear();
+            try {
+                for (int i = 0; i < filterArray.length(); i++) {
+                    filter.add(filterArray.getString(i));
+                }
+            }
+            catch (JSONException e) {
+                filter.clear();
+                AppConfig.saveNoFilter();
+            }
         }
         catch (IOException e) {
-            showUnexpectedErrorMessage("Fail to load.", e);
+            showUnexpectedErrorMessage("Fail to load. ", e);
+            System.exit(0);
+        }
+        catch (Exception e) {
+            showErrorMessage(
+                "Corrupted data, please restart the app twice. ",
+                e
+            );
             System.exit(0);
         }
     }
@@ -242,16 +328,16 @@ public final class Main extends Application implements MainWindow.Callback {
         }
     }
 
-    private boolean checkOverlapping(Section checkSection, Section noCompare) {
+    private String checkOverlapping(Section checkSection, Section noCompare) {
         for (Section section : sections) {
             if (section == noCompare) {
                 continue;
             }
             if (checkSection.overlaps(section)) {
-                return false;
+                return checkSection.takeOverlapResult();
             }
         }
-        return true;
+        return null;
     }
 
     private boolean save() {
@@ -273,7 +359,14 @@ public final class Main extends Application implements MainWindow.Callback {
     private void updateUI() {
         mw.clear();
         for (Section section : sections) {
-            mw.addSection(section);
+            // Use no filter
+            if (filter.isEmpty()) {
+                mw.addSection(section);
+            }
+            // Filter by class tags (professor specializations)
+            else if (filter.contains(section.getSectionClass().getTag())) {
+                mw.addSection(section);
+            }
         }
     }
 }

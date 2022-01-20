@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2017 Tobias Briones. All rights reserved.
+ * Copyright (c) 2017-2018 Tobias Briones. All rights reserved.
  */
 
 package dev.tobiasbriones.poslans.sm.current;
 
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileOutputStream;
@@ -51,7 +53,7 @@ public final class History {
             @Override
             public boolean accept(File pathname) {
                 String extension = "";
-                int i = pathname.getName().lastIndexOf('.');
+                final int i = pathname.getName().lastIndexOf('.');
                 if (i > 0) {
                     extension = pathname.getName().substring(i + 1);
                 }
