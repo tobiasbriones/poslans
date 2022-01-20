@@ -93,3 +93,20 @@ Which gives a format like this:
 **Exported History**
 
 ![Exported History](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-exported-history.png)
+
+You can see how many sections per course have been opened:
+
+**Sections Opened per Class**
+
+![Sections Opened per Class](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-sections-opened-per-class.png)
+
+Information about buildings can be seen from the another option to the right 
+also.
+
+You can filter sections per field (multiselect):
+
+**Filter Sections**
+
+![Filter Sections](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-filter-sections.png)
+
+Select "No Filter" to disable the filter.
