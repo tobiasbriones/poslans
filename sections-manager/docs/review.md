@@ -10,6 +10,9 @@ file to the application or fill the data right inside the application career
 data editor. The application works offline and you data is stored in your
 computer.
 
+Download the sample career-data
+template [here](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.1/sm-career-data-template-sample.xlsx).
+
 **Welcome Screen**
 
 ![Welcome Screen](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.1/sm-welcome.png)
@@ -53,14 +56,14 @@ depicted below.
 
 ![Open New Term](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.1/sm-open-new-term.png)
 
-You can open a new term on the top-right button and check the result below 
-the name of your university and faculty.
+You can open a new term on the top-right button and check the result below the
+name of your university and faculty.
 
 **Open New Section**
 
 ![Open New Section](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.1/sm-open-new-section.png)
 
-You can create your sections and if they overlap or there is any problem the 
+You can create your sections and if they overlap or there is any problem the
 application will prevent you from proceeding.
 
 **Sections Opened**
