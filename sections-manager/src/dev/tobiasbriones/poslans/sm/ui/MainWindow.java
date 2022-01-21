@@ -61,17 +61,25 @@ public final class MainWindow extends JFrame implements ActionListener,
 
         List<HistoryItem> getHistory();
 
-        HashMap<String, String> getClassroomsTakenHours();
+        List<Classroom> getClassrooms();
 
         Enumeration<ProfessorAcademicLoad> getProfessorsLoad();
 
         Iterator<Section> listSections();
+
+        boolean isClassroomAvailable(
+            Classroom classroom,
+            int day,
+            int hour
+        );
 
         void createNewTerm(String name);
 
         void saveTerm() throws IOException;
 
         void importSections(Sheet sheet);
+
+        void importSectionsFromGenericFile(Sheet sheet);
 
         String openSection(
             Class course, Professor professor,
@@ -266,43 +274,15 @@ public final class MainWindow extends JFrame implements ActionListener,
                 }
                 break;
             case MW_TOOLBAR_OPEN_SECTION_IMPORT:
-                if (JOptionPane.showConfirmDialog(
-                    this,
-                    IMPORT_SECTIONS
-                ) == JOptionPane.OK_OPTION) {
-                    final JFileChooser fileChooser = new JFileChooser();
-                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    fileChooser.setCurrentDirectory(
-                        new File("sections-manager/data/history")
-                    );
-                    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
-                        try {
-                            final File file = fileChooser.getSelectedFile();
-                            final Workbook workbook = new XSSFWorkbook(file);
-                            final Sheet sheet = workbook.getSheetAt(0);
-                            callback.importSections(sheet);
-                            workbook.close();
-                        }
-                        catch (Exception ex) {
-                            JOptionPane.showMessageDialog(
-                                this,
-                                ex,
-                                ERROR_OPENING,
-                                JOptionPane.ERROR_MESSAGE
-                            );
-                            break;
-                        }
-                    }
+                if (JOptionPane.showConfirmDialog(this, IMPORT_SECTIONS) == JOptionPane.OK_OPTION) {
+                    new ImportFileTypeDialog(this, callback);
                 }
                 break;
             case MW_TOOLBAR_SECTIONS_INFO:
                 new SectionsInfoDialog(this, callback.listSections());
                 break;
             case MW_TOOLBAR_CLASSROOMS_INFO:
-                new ClassroomsInfoDialog(
-                    this,
-                    callback.getClassroomsTakenHours()
-                );
+                new ClassroomsInfoDialog(this, callback);
                 break;
             case MW_TOOLBAR_PROFESSORS:
                 new ProfessorsLoadDialog(this, callback.getProfessorsLoad());
@@ -629,6 +609,77 @@ public final class MainWindow extends JFrame implements ActionListener,
                 callback.setFilter(list.getSelectedValuesList());
             }
             dispose();
+        }
+    }
+
+    private static final class ImportFileTypeDialog extends JDialog implements ActionListener {
+        private static final long serialVersionUID = 8131151297294945556L;
+        private final Callback callback;
+        private final JButton historyButton;
+        private final JButton genericFileButton;
+
+        ImportFileTypeDialog(MainWindow mw, Callback callback) {
+            super(mw, "Import file");
+            this.callback = callback;
+            this.historyButton = new JButton("FROM APP HISTORY");
+            this.genericFileButton = new JButton("FROM GENERIC FILE");
+            final JPanel panel = new JPanel();
+            final JPanel bottomPanel = new JPanel();
+            final JLabel label = new JLabel(IMPORT_TYPE);
+            historyButton.setFocusable(false);
+            historyButton.addActionListener(this);
+            genericFileButton.addActionListener(this);
+            genericFileButton.setFocusable(false);
+            bottomPanel.setLayout(new GridLayout(1, 2));
+            bottomPanel.setPreferredSize(new Dimension(300, 60));
+            bottomPanel.setBackground(Color.WHITE);
+            bottomPanel.add(historyButton, BorderLayout.WEST);
+            bottomPanel.add(genericFileButton, BorderLayout.EAST);
+            panel.setLayout(new BorderLayout());
+            panel.setBorder(new EmptyBorder(10, 10, 10, 10));
+            panel.setBackground(Color.WHITE);
+            panel.add(label, BorderLayout.NORTH);
+            panel.add(bottomPanel, BorderLayout.CENTER);
+            getContentPane().add(panel);
+            pack();
+            setResizable(false);
+            setLocationRelativeTo(null);
+            setModalityType(ModalityType.APPLICATION_MODAL);
+            setIconImage(Toolkit.getDefaultToolkit()
+                                .getImage(Main.getIconPath("ic_import.png")));
+            setVisible(true);
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            final JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setCurrentDirectory(
+                new File("sections-manager/data/history")
+            );
+            if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                try {
+                    final File file = fileChooser.getSelectedFile();
+                    final Workbook workbook = new XSSFWorkbook(file);
+                    final Sheet sheet = workbook.getSheetAt(0);
+                    if (e.getSource() == historyButton) {
+                        callback.importSections(sheet);
+                    }
+                    else {
+                        callback.importSectionsFromGenericFile(sheet);
+                    }
+                    workbook.close();
+                    dispose();
+                }
+                catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        ex,
+                        ERROR_OPENING,
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
+            }
         }
     }
 }

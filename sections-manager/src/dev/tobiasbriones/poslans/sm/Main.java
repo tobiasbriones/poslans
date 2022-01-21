@@ -10,6 +10,8 @@ import dev.tobiasbriones.poslans.sm.current.*;
 import dev.tobiasbriones.poslans.sm.ui.CareerDataDialog;
 import dev.tobiasbriones.poslans.sm.ui.MainWindow;
 import dev.tobiasbriones.poslans.sm.ui.Strings;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellType;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.json.JSONArray;
@@ -28,7 +30,7 @@ import java.util.List;
  * and closing of academic terms, course sections taking into account course
  * overlaps, professors, etc.
  *
- * This current software versions are legacy code I made 4 years ago, so they
+ * These current software versions are legacy code I made 4 years ago, so they
  * are being transformed until release 0.1.
  *
  * @author Tobias Briones
@@ -49,7 +51,8 @@ public final class Main extends Application implements MainWindow.Callback {
                 new File("sections-manager/fonts/Roboto-Light.ttf")
             ));
         }
-        catch (Exception e) {}
+        catch (Exception e) {
+        }
         SwingUtilities.invokeLater(() -> new Main());
     }
 
@@ -60,6 +63,7 @@ public final class Main extends Application implements MainWindow.Callback {
     private final CareerDataHolder careerData;
     private final SectionsEditor sectionsEditor;
     private final List<Section> sections;
+    private final HashSet<String> openSections;
     private final MainWindow mw;
     private final String[] careerInfo;
     private final List<String> filter;
@@ -69,6 +73,7 @@ public final class Main extends Application implements MainWindow.Callback {
         this.careerData = new CareerDataHolder();
         this.sectionsEditor = new SectionsEditor();
         this.sections = new ArrayList<>();
+        this.openSections = new HashSet<>();
         this.mw = new MainWindow(careerData, this);
         this.careerInfo = new String[2];
         this.filter = new ArrayList<>();
@@ -126,26 +131,8 @@ public final class Main extends Application implements MainWindow.Callback {
     }
 
     @Override
-    public HashMap<String, String> getClassroomsTakenHours() {
-        final HashMap<String, String> classroomsTakenHours = new HashMap<>();
-        Classroom currentClassroom;
-        String currentStr;
-        for (Classroom classroom : careerData.getClassrooms()) {
-            classroomsTakenHours.put(classroom.toString(), "");
-        }
-        for (Section section : sections) {
-            currentClassroom = section.getClassroom();
-            if (classroomsTakenHours.containsKey(currentClassroom.toString())) {
-                currentStr =
-                    classroomsTakenHours.get(currentClassroom.toString());
-                currentStr += " " + section.getTime() + " ";
-                classroomsTakenHours.put(
-                    currentClassroom.toString(),
-                    currentStr
-                );
-            }
-        }
-        return classroomsTakenHours;
+    public List<Classroom> getClassrooms() {
+        return java.util.Collections.unmodifiableList(careerData.getClassrooms());
     }
 
     @Override
@@ -156,6 +143,16 @@ public final class Main extends Application implements MainWindow.Callback {
     @Override
     public Iterator<Section> listSections() {
         return sections.iterator();
+    }
+
+    @Override
+    public boolean isClassroomAvailable(
+        Classroom classroom,
+        int day,
+        int hour
+    ) {
+        final String str = day + "-" + hour + "-" + classroom;
+        return openSections.contains(str);
     }
 
     @Override
@@ -324,7 +321,159 @@ public final class Main extends Application implements MainWindow.Callback {
         JOptionPane.showMessageDialog(mw, count + " sections added.");
     }
 
-    // Returns null when there's not overlap
+    @Override
+    public void importSectionsFromGenericFile(Sheet sheet) {
+        final List<Class> classes = careerData.getClasses();
+        final List<Professor> professors = careerData.getProfessors();
+        final List<Classroom> classrooms = careerData.getClassrooms();
+        Cell currentClassCodeCell = null;
+        Cell currentProfessorIdCell = null;
+        Cell currentDaysCell = null;
+        Cell currentClassroomCell = null;
+        Cell currentTimeCell = null;
+        String[] currentDaysString = null;
+        Class currentClass = null;
+        Professor currentProfessor = null;
+        int[] currentDays = null;
+        Classroom currentClassroom = null;
+        Time currentTime = null;
+        int count = 0;
+        try {
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) {
+                    continue;
+                }
+                currentClassCodeCell = row.getCell(0);
+                currentProfessorIdCell = row.getCell(1);
+                currentDaysCell = row.getCell(2);
+                currentClassroomCell = row.getCell(3);
+                currentTimeCell = row.getCell(4);
+                // Validate row
+                if (!isCellSet(currentClassCodeCell) || !isCellSet(
+                    currentProfessorIdCell)
+                    || !isCellSet(currentDaysCell) || !isCellSet(
+                    currentClassroomCell)
+                    || !isCellSet(currentTimeCell)) {
+                    throw new NullPointerException();
+                }
+                if (currentProfessorIdCell.getCellType() != CellType.NUMERIC) {
+                    throw new Exception("Professor ID is an interger");
+                }
+                currentDaysString = currentDaysCell.getStringCellValue()
+                                                   .split(",");
+                currentClass = null;
+                for (Class next : classes) {
+                    if (next.getCode()
+                            .equals(currentClassCodeCell.getStringCellValue())) {
+                        currentClass = next;
+                        break;
+                    }
+                }
+                if (currentClass == null) {
+                    throw new Exception("Class not found: " + currentClassCodeCell.getStringCellValue());
+                }
+                currentProfessor = null;
+                for (Professor next : professors) {
+                    if (next.getId() == currentProfessorIdCell.getNumericCellValue()) {
+                        currentProfessor = next;
+                        break;
+                    }
+                }
+                if (currentProfessor == null) {
+                    throw new Exception("Professor not found: " + currentProfessorIdCell.getNumericCellValue());
+                }
+                currentDays = new int[currentDaysString.length];
+                for (int i = 0; i < currentDays.length; i++) {
+                    try {
+                        currentDays[i] =
+                            Integer.parseInt(currentDaysString[i].trim());
+                    }
+                    catch (Exception e) {
+                        throw new Exception("Invalid day: " + currentDaysString[i]);
+                    }
+                    if (currentDays[i] < 0 || currentDays[i] > 5) {
+                        throw new Exception("Invalid day: " + currentDaysString[i]);
+                    }
+                }
+                currentClassroom = null;
+                for (Classroom next : classrooms) {
+                    final String str =
+                        next.getBuilding() + " " + next.getClassroomNumber();
+                    if (str.equals(currentClassroomCell.getStringCellValue())) {
+                        currentClassroom = next;
+                        break;
+                    }
+                }
+                if (currentClassroom == null) {
+                    throw new Exception("Classroom not found: " + currentClassroomCell.getStringCellValue());
+                }
+                currentTime = null;
+                // Parse time like "0700, 1300, 800"
+                String timeStr;
+                if (isCellInteger(currentTimeCell)) {
+                    timeStr =
+                        String.valueOf((int) currentTimeCell.getNumericCellValue());
+                    if (timeStr.length() == 4 || timeStr.length() == 3) {
+                        timeStr = timeStr.substring(0, timeStr.length() - 2);
+                    }
+                    else {
+                        throw new Exception("Invalid time: " + timeStr);
+                    }
+                }
+                else {
+                    timeStr = currentTimeCell.getStringCellValue();
+                }
+                currentTime = Time.fromString(timeStr);
+                if (currentTime == null) {
+                    throw new Exception("Invalid time: " + timeStr);
+                }
+                // Open the current section
+                final Section newSection = sectionsEditor.openSection(
+                    currentClass,
+                    currentDays,
+                    currentClassroom,
+                    currentTime,
+                    currentProfessor
+                );
+                final String check = checkOverlapping(newSection, null);
+                count++;
+                // Overlapping verification
+                if (check != null) {
+                    throw new Exception(check);
+                }
+            }
+        }
+        catch (Exception e) {
+            final String msg = (e instanceof NullPointerException)
+                               ? "There's a null empty cell in the sheet, "
+                                 + "row: " + (count + 2)
+                               : e.getMessage() + ", row: " + (count + 2);
+            // Clear editor
+            for (int i = 0; i < count; i++) {
+                sectionsEditor.delete(sectionsEditor.getSize() - 1);
+            }
+            JOptionPane.showMessageDialog(
+                mw,
+                msg,
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        if (!save()) {
+            JOptionPane.showMessageDialog(
+                mw,
+                "It couldn't save changes",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+        loadData();
+        updateUI();
+        JOptionPane.showMessageDialog(mw, count + " sections added.");
+    }
+
+    // Returns null when there's no overlap
     @Override
     public String openSection(
         Class course,
@@ -421,6 +570,7 @@ public final class Main extends Application implements MainWindow.Callback {
             new ProfessorSpecializationEditor();
         careerData.clear();
         sections.clear();
+        openSections.clear();
         try {
             CareerInformation.loadInformation(careerInfo);
             classEditor.load();
@@ -443,6 +593,15 @@ public final class Main extends Application implements MainWindow.Callback {
             catch (JSONException e) {
                 filter.clear();
                 AppConfig.saveNoFilter();
+            }
+            for (Section section : sections) {
+                for (int day : section.getDays()) {
+                    openSections.add(
+                        day + "-" + section.getTime()
+                                           .getHour() + "-" + section.getClassroom()
+                                                                     .toString()
+                    );
+                }
             }
         }
         catch (IOException e) {
@@ -519,5 +678,14 @@ public final class Main extends Application implements MainWindow.Callback {
                 mw.addSection(section);
             }
         }
+    }
+
+    private static boolean isCellSet(Cell cell) {
+        return cell != null && cell.getCellType() != CellType.BLANK;
+    }
+
+    private static boolean isCellInteger(Cell cell) {
+        return cell.getCellType() == CellType.NUMERIC
+               && (cell.getNumericCellValue() == ((int) cell.getNumericCellValue()));
     }
 }

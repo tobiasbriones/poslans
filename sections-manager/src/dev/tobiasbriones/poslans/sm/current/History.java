@@ -5,13 +5,10 @@
 package dev.tobiasbriones.poslans.sm.current;
 
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFColor;
 import org.apache.poi.xssf.usermodel.XSSFFont;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
-import java.awt.Color;
 import java.io.File;
-import java.io.FileFilter;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -50,49 +47,19 @@ public final class History {
             "Sections Manager - " + career + " " + term + " " + dateStr +
             ".xlsx";
         check();
-        final File file = new File(DATA_DIRECTORY, fileName);
-        final Workbook workbook = makeHistory(sections, career, term);
-        try (FileOutputStream fos = new FileOutputStream(file)) {
-            workbook.write(fos);
-        }
-        workbook.close();
-    }
-
-    public static List<HistoryItem> loadHistory() throws IOException {
-        check();
-        final List<HistoryItem> history = new ArrayList<>();
-        final File[] files = new File(DATA_DIRECTORY).listFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                String extension = "";
-                final int i = pathname.getName().lastIndexOf('.');
-                if (i > 0) {
-                    extension = pathname.getName().substring(i + 1);
-                }
-                return (pathname.isFile() && extension.equals("xlsx"));
-            }
-        });
-        for (File file : files) {
-            history.add(new HistoryItem(file));
-        }
-        return history;
+        save(sections, career, term, new File(DATA_DIRECTORY, fileName));
     }
 
     public static List<HistoryItem> loadHistoryItems() throws IOException {
         check();
         final List<HistoryItem> history = new ArrayList<>();
-        final File[] files = new File(DATA_DIRECTORY).listFiles(new FileFilter() {
-
-            @Override
-            public boolean accept(File pathname) {
-                String extension = "";
-                final int i = pathname.getName().lastIndexOf('.');
-                if (i > 0) {
-                    extension = pathname.getName().substring(i + 1);
-                }
-                return (pathname.isFile() && extension.equals("xlsx"));
+        final File[] files = new File(DATA_DIRECTORY).listFiles(pathname -> {
+            String extension = "";
+            final int i = pathname.getName().lastIndexOf('.');
+            if (i > 0) {
+                extension = pathname.getName().substring(i + 1);
             }
+            return (pathname.isFile() && extension.equals("xlsx"));
         });
         for (File file : files) {
             history.add(new HistoryItem(file));
@@ -125,23 +92,19 @@ public final class History {
         Row row = null;
         Cell cell = null;
         int x = 0;
-        sheet.protectSheet(
-            ")�zad02_X _pad$%41pS�oo-__O21#PokWFIjkmsapOsjjnNh7KlaiZ&ux(k_{ll");
         sheet.setColumnWidth(0, 12000);
         sheet.setColumnWidth(1, 12000);
         sheet.setColumnWidth(2, 8000);
         sheet.setColumnWidth(3, 10000);
         sheet.setColumnWidth(4, 2000);
         sheet.setColumnWidth(5, 3000);
+        headerStyle.setLocked(false);
         headerFont.setFontHeightInPoints((short) 12);
         headerFont.setBold(true);
         headerStyle.setFont(headerFont);
         footFont.setFontHeightInPoints((short) 10);
         footFont.setItalic(true);
-
-        // compatibility issue
         // footFont.setColor(new XSSFColor(Color.decode("#737373")));
-
         footStyle.setFont(footFont);
         row = sheet.createRow(x);
         cell = row.createCell(0);

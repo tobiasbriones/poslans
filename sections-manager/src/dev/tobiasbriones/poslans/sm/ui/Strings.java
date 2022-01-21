@@ -30,7 +30,8 @@ public interface Strings {
 
     String ABOUT_TIP = "About Sections Manager";
 
-    String CAREER_INFO_TIP = "Set your university and career";
+    String CAREER_INFO_TIP = "Set your university and "
+                             + "career";
 
     String IMPORT_EXPORT_TIP = "Import / Export";
 
@@ -52,9 +53,9 @@ public interface Strings {
 
     String WELCOME_MSG = "<html>Welcome! Let's start "
                          + "loading your career's data"
-                         + ".<br>You wil be able to import"
-                         + " your xlsx file or use the "
-                         + "app's data editor.</html>";
+                         + ".<br>You wil be able to "
+                         + "import your xlsx file or use "
+                         + "the app's data editor.</html>";
 
     String GETTING_STARTED = "Getting started";
 
@@ -98,8 +99,7 @@ public interface Strings {
     String IMPORT_SECTIONS = "Do you want to import "
                              + "sections from your excel "
                              + "history?\nThey will be "
-                             + "added to the current "
-                             + "term.";
+                             + "added to the current term.";
 
     String SPECIALIZATION = "Specialization";
 
@@ -111,8 +111,8 @@ public interface Strings {
                                           "specialization";
 
     String DELETE_CAREER_DATA = "<html>Delete career "
-                                + "data?<br>This can't be "
-                                + "undone</html>";
+                                + "data?<br>This can't be"
+                                + " undone</html>";
 
     String HISTORY = "History";
 
@@ -155,8 +155,8 @@ public interface Strings {
     String IMPORT_EXPORT = "Import/Export";
 
     String IMPORT_EXPORT_LABEL = "<html>Import your data "
-                                 + "or export the current "
-                                 + "data, Excel file "
+                                 + "or export the current"
+                                 + " data, Excel file "
                                  + "format.<br>Importing "
                                  + "data will overwrite "
                                  + "your current data"
@@ -226,6 +226,8 @@ public interface Strings {
     String TOTAL_SECTIONS_OPENED = "Total opened "
                                    + "sections: ";
 
+    String IMPORT_TYPE = "Select file type to import";
+
     String TITLE_PAL = "<html><span "
                        + "style='font-weight:900;"
                        + "'>Professor</span></html>";
@@ -235,7 +237,7 @@ public interface Strings {
                         + "'>Load</span></html>";
 
     String ABOUT = "About";
-    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.3"
+    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.4"
                        + "<br>This software includes"
                        + " the following libraries:<br>- Apache POI library "
                        + "under "
