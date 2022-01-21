@@ -110,3 +110,24 @@ You can filter sections per field (multiselect):
 ![Filter Sections](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-filter-sections.png)
 
 Select "No Filter" to disable the filter.
+
+## Latest Versions
+
+As of v0.1-alpha.4 these features are available:
+
+Get graphic information about the available or taken classrooms in function of 
+time.
+
+**Classroom Availability**
+
+![Classroom Availability](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.4/sm-classroom-availability.png)
+
+Import sections from a previously generated term history. 
+
+**Import Sections**
+
+![Import Sections](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.4/sm-import-sections.png)
+
+**Sections Imported**
+
+![Sections Imported](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.4/sm-sections-imported.png)
