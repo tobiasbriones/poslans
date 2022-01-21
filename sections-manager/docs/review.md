@@ -11,7 +11,7 @@ data editor. The application works offline and you data is stored in your
 computer.
 
 Download the sample career-data
-template [here](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-career-data-template-sample.xlsx).
+template [here](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.4/sm-career-data-template-sample.xlsx).
 
 **Welcome Screen**
 
@@ -100,7 +100,7 @@ You can see how many sections per course have been opened:
 
 ![Sections Opened per Class](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.2/sm-sections-opened-per-class.png)
 
-Information about buildings can be seen from the another option to the right 
+Information about buildings can be seen from the another option to the right
 also.
 
 You can filter sections per field (multiselect):
@@ -115,14 +115,14 @@ Select "No Filter" to disable the filter.
 
 As of v0.1-alpha.4 these features are available:
 
-Get graphic information about the available or taken classrooms in function of 
+Get graphic information about the available or taken classrooms in function of
 time.
 
 **Classroom Availability**
 
 ![Classroom Availability](https://github.com/tobiasbriones/poslans/releases/download/v0.1-alpha.4/sm-classroom-availability.png)
 
-Import sections from a previously generated term history. 
+Import sections from a previously generated term history.
 
 **Import Sections**
 
