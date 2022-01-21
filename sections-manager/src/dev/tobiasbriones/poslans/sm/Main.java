@@ -16,6 +16,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 
 import javax.swing.*;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
@@ -116,7 +117,7 @@ public final class Main extends Application implements MainWindow.Callback {
     @Override
     public List<HistoryItem> getHistory() {
         try {
-            return History.loadHistory();
+            return History.loadHistoryItems();
         }
         catch (IOException e) {
             showErrorMessage("Fail to load history.", e);
@@ -160,7 +161,7 @@ public final class Main extends Application implements MainWindow.Callback {
     @Override
     public void createNewTerm(String name) {
         try {
-            saveToHistory();
+            saveTermToHistory();
             Term.set(name);
             this.term = Term.load();
         }
@@ -174,20 +175,32 @@ public final class Main extends Application implements MainWindow.Callback {
     }
 
     @Override
-    public void saveToHistory() {
-        if (sections.isEmpty()) {
-            //showInfoMessage("Nothing to save!");
+    public void saveTerm() throws IOException {
+        final File file = AppConfig.getTermFile();
+        if (file == null) {
+            JOptionPane.showMessageDialog(
+                mw,
+                "Select a folder to save your data through the save option"
+            );
+            final JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+            fileChooser.setFileFilter(new FileNameExtensionFilter(
+                "Excel files",
+                "xlsx"
+            ));
+            if (fileChooser.showSaveDialog(mw) == JFileChooser.APPROVE_OPTION) {
+                File selection = fileChooser.getSelectedFile();
+                if (!selection.toString().endsWith(".xlsx")) {
+                    selection = new File(selection + ".xlsx");
+                }
+                AppConfig.saveTermFile(selection);
+                saveTerm();
+            }
             return;
         }
-        try {
-            History.save(sections, careerInfo[1], term);
-            showInfoMessage(Strings.SUCCESSFULLY_SAVED);
-        }
-        catch (IOException e) {
-            showErrorMessage("Fail to save. ", e);
-        }
+        History.save(sections, careerInfo[1], term, file);
+        showInfoMessage(Strings.SUCCESSFULLY_SAVED);
     }
-
 
     @Override
     public void importSections(Sheet sheet) {
@@ -311,17 +324,17 @@ public final class Main extends Application implements MainWindow.Callback {
         JOptionPane.showMessageDialog(mw, count + " sections added.");
     }
 
-    // Returns null when there's no overlap
+    // Returns null when there's not overlap
     @Override
     public String openSection(
-        Class Class,
+        Class course,
         Professor professor,
         Classroom classroom,
         Time time,
         int[] days
     ) {
         final Section newSection = sectionsEditor.openSection(
-            Class,
+            course,
             days,
             classroom,
             time,
@@ -474,6 +487,19 @@ public final class Main extends Application implements MainWindow.Callback {
             return false;
         }
         return true;
+    }
+
+    private void saveTermToHistory() {
+        if (sections.isEmpty()) {
+            return;
+        }
+        try {
+            History.save(sections, careerInfo[1], term);
+            showInfoMessage(Strings.SUCCESSFULLY_SAVED);
+        }
+        catch (IOException e) {
+            showErrorMessage("Fail to save. ", e);
+        }
     }
 
     private void deleteAllSections() {

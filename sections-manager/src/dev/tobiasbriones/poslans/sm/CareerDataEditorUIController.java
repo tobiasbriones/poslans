@@ -38,7 +38,8 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         this.classesEditor = new ClassesEditor();
         this.professorsEditor = new ProfessorsEditor();
         this.classroomsEditor = new ClassroomsEditor();
-        this.professorSpecializationEditor = new ProfessorSpecializationEditor();
+        this.professorSpecializationEditor =
+            new ProfessorSpecializationEditor();
         this.amr = amr;
         this.dialog = null;
         this.hasChanges = false;
@@ -155,12 +156,13 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
 
     @Override
     public void createProfessor(
+        int id,
         String name,
         Professor.Title title,
         String specialization
     ) {
         hasChanges = true;
-        professorsEditor.create(name, title, specialization);
+        professorsEditor.create(id, name, title, specialization);
         professorsEditor.performLastChange(careerData.getProfessors());
         dialog.updateProfessorsUI();
     }
@@ -254,9 +256,10 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         classesSheet.setColumnWidth(1, 12000);
         classesSheet.setColumnWidth(4, 4000);
         classesSheet.setColumnWidth(5, 12000);
-        professorsSheet.setColumnWidth(0, 12000);
-        professorsSheet.setColumnWidth(1, 6000);
-        professorsSheet.setColumnWidth(2, 12000);
+        professorsSheet.setColumnWidth(0, 6000);
+        professorsSheet.setColumnWidth(1, 12000);
+        professorsSheet.setColumnWidth(2, 6000);
+        professorsSheet.setColumnWidth(3, 12000);
         classroomsSheet.setColumnWidth(0, 8000);
         classroomsSheet.setColumnWidth(1, 6000);
         classroomsSheet.setColumnWidth(2, 16000);
@@ -298,20 +301,24 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
         row = professorsSheet.createRow(x);
         header = row.createCell(0);
         header.setCellStyle(headerStyle);
-        header.setCellValue("NAME");
+        header.setCellValue("ID");
         header = row.createCell(1);
         header.setCellStyle(headerStyle);
-        header.setCellValue("TITLE");
+        header.setCellValue("NAME");
         header = row.createCell(2);
+        header.setCellStyle(headerStyle);
+        header.setCellValue("TITLE");
+        header = row.createCell(3);
         header.setCellStyle(headerStyle);
         header.setCellValue("SPECIALIZATION");
         x++;
         for (Professor professor : careerData.getProfessors()) {
             row = professorsSheet.createRow(x);
-            row.createCell(0).setCellValue(professor.getName());
-            row.createCell(1)
+            row.createCell(0).setCellValue(professor.getId());
+            row.createCell(1).setCellValue(professor.getName());
+            row.createCell(2)
                .setCellValue(professor.getTitle().toString().toUpperCase());
-            row.createCell(2).setCellValue(professor.getSpecialization());
+            row.createCell(3).setCellValue(professor.getSpecialization());
             x++;
         }
         x = 0;
@@ -367,6 +374,6 @@ final class CareerDataEditorUIController implements CareerDataDialog.Callback {
                 return;
             }
         }
-        amr.showInfoMessage("Data exported successfully");
+        amr.showInfoMessage("Data successfully exported");
     }
 }

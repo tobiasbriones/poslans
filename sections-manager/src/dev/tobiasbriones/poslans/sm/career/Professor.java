@@ -61,14 +61,21 @@ public final class Professor {
             return str;
         }
     }
+
+    private final int id;
     private final String name;
     private final Title title;
     private final String specialization;
 
-    public Professor(String name, Title title, String specialization) {
+    public Professor(int id, String name, Title title, String specialization) {
+        this.id = id;
         this.name = name.toUpperCase();
         this.title = title;
         this.specialization = specialization.toUpperCase();
+    }
+
+    public int getId() {
+        return id;
     }
 
     public String getName() {

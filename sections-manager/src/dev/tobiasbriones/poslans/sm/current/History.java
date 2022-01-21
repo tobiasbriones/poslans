@@ -27,6 +27,19 @@ public final class History {
     public static void save(
         List<Section> sections,
         String career,
+        String term,
+        File file
+    ) throws IOException {
+        final Workbook workbook = makeHistory(sections, career, term);
+        try (final FileOutputStream fos = new FileOutputStream(file)) {
+            workbook.write(fos);
+        }
+        workbook.close();
+    }
+
+    public static void save(
+        List<Section> sections,
+        String career,
         String term
     ) throws IOException {
         final DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
@@ -46,6 +59,27 @@ public final class History {
     }
 
     public static List<HistoryItem> loadHistory() throws IOException {
+        check();
+        final List<HistoryItem> history = new ArrayList<>();
+        final File[] files = new File(DATA_DIRECTORY).listFiles(new FileFilter() {
+
+            @Override
+            public boolean accept(File pathname) {
+                String extension = "";
+                final int i = pathname.getName().lastIndexOf('.');
+                if (i > 0) {
+                    extension = pathname.getName().substring(i + 1);
+                }
+                return (pathname.isFile() && extension.equals("xlsx"));
+            }
+        });
+        for (File file : files) {
+            history.add(new HistoryItem(file));
+        }
+        return history;
+    }
+
+    public static List<HistoryItem> loadHistoryItems() throws IOException {
         check();
         final List<HistoryItem> history = new ArrayList<>();
         final File[] files = new File(DATA_DIRECTORY).listFiles(new FileFilter() {

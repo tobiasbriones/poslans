@@ -4,6 +4,7 @@
 
 package dev.tobiasbriones.poslans.sm.ui;
 
+import dev.tobiasbriones.poslans.sm.Main;
 import dev.tobiasbriones.poslans.sm.current.HistoryItem;
 
 import javax.swing.*;
@@ -13,6 +14,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -20,46 +22,53 @@ public final class HistoryDialog extends JDialog implements Strings,
                                                             ActionListener,
                                                             MouseListener {
     private static final long serialVersionUID = -4947718754960672116L;
-    public interface Callback {
-        void saveToHistory();
-    }
-
-    private final Callback callback;
     private final JList<HistoryItem> list;
 
-    public HistoryDialog(MainWindow mw, List<HistoryItem> history) {
-        super(mw, Strings.HISTORY);
-        this.callback = mw;
+    HistoryDialog(MainWindow mw, List<HistoryItem> history) {
+        super(mw, HISTORY);
         this.list = new JList<>();
         final JPanel panel = new JPanel();
+        final JPanel bottomPanel = new JPanel();
         final JScrollPane scroll = new JScrollPane(list);
-        final JButton saveCurrentButton =
-            new JButton(Strings.SAVE_CURRENT_DATA.toUpperCase());
+        final JButton goToFolderButton =
+            new JButton(GO_TO_FOLDER.toUpperCase());
         final DefaultListModel<HistoryItem> model = new DefaultListModel<>();
         for (HistoryItem item : history) {
             model.addElement(item);
         }
         list.setModel(model);
         list.addMouseListener(this);
-        saveCurrentButton.addActionListener(this);
+        goToFolderButton.setName("go-to-folder");
+        goToFolderButton.addActionListener(this);
+        bottomPanel.setLayout(new GridLayout(1, 1));
+        bottomPanel.add(goToFolderButton);
         panel.setLayout(new BorderLayout());
         panel.setBorder(new EmptyBorder(10, 15, 10, 15));
         panel.add(scroll, BorderLayout.NORTH);
-        panel.add(saveCurrentButton, BorderLayout.SOUTH);
+        panel.add(bottomPanel, BorderLayout.SOUTH);
         getContentPane().add(panel);
         pack();
         setResizable(false);
         setModalityType(ModalityType.APPLICATION_MODAL);
         setIconImage(Toolkit.getDefaultToolkit()
-                            .getImage("icons/ic_history.png"));
+                            .getImage(Main.getIconPath("ic_history.png")));
         setLocationRelativeTo(null);
         setVisible(true);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        callback.saveToHistory();
-        dispose();
+        try {
+            Desktop.getDesktop().open(new File("sections-manager/data/history"));
+        }
+        catch (IOException ex) {
+            JOptionPane.showConfirmDialog(
+                this,
+                ex.getMessage(),
+                "Fail",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
     }
 
     @Override
@@ -69,7 +78,7 @@ public final class HistoryDialog extends JDialog implements Strings,
                 Desktop.getDesktop().open(list.getSelectedValue().getFile());
             }
             catch (IOException ex) {
-                JOptionPane.showMessageDialog(this, Strings.FAIL + ". " + ex);
+                JOptionPane.showMessageDialog(this, FAIL + ". " + ex);
                 dispose();
             }
         }

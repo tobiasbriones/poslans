@@ -15,9 +15,24 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Properties;
 
-final class AppConfig {
+public final class AppConfig {
     private static final String APP_CONFIG_FILE = "sections-manager/properties.prop";
     private static final String APP_CONFIG_PROP_FILTER = "filter";
+    private static final String APP_CONFIG_PROP_TERM_FILE = "term_file";
+
+    public static void saveTermFile(File file) throws IOException {
+        final Properties properties = new Properties();
+        properties.load(new FileInputStream(APP_CONFIG_FILE));
+        properties.put(APP_CONFIG_PROP_TERM_FILE, file.toString());
+        properties.store(new FileOutputStream(APP_CONFIG_FILE), null);
+    }
+
+    public static File getTermFile() throws IOException {
+        final Properties properties = new Properties();
+        properties.load(new FileInputStream(APP_CONFIG_FILE));
+        final String path = properties.getProperty(APP_CONFIG_PROP_TERM_FILE);
+        return (path != null) ? new File(path) : null;
+    }
 
     private AppConfig() {}
 
@@ -35,24 +50,24 @@ final class AppConfig {
 
     static void saveNoFilter() throws IOException {
         final Properties properties = new Properties();
-        properties.load(new FileInputStream(new File(APP_CONFIG_FILE)));
+        properties.load(new FileInputStream(APP_CONFIG_FILE));
         properties.put(APP_CONFIG_PROP_FILTER, new JSONArray().toString());
-        properties.store(new FileOutputStream(new File(APP_CONFIG_FILE)), null);
+        properties.store(new FileOutputStream(APP_CONFIG_FILE), null);
     }
 
     static void saveFilter(List<String> filter) throws IOException {
         final Properties properties = new Properties();
-        properties.load(new FileInputStream(new File(APP_CONFIG_FILE)));
+        properties.load(new FileInputStream(APP_CONFIG_FILE));
         properties.put(
             APP_CONFIG_PROP_FILTER,
             new JSONArray(filter).toString()
         );
-        properties.store(new FileOutputStream(new File(APP_CONFIG_FILE)), null);
+        properties.store(new FileOutputStream(APP_CONFIG_FILE), null);
     }
 
     static JSONArray loadFilter() throws IOException {
         final Properties properties = new Properties();
-        properties.load(new FileInputStream(new File(APP_CONFIG_FILE)));
+        properties.load(new FileInputStream(APP_CONFIG_FILE));
         try {
             return new JSONArray(properties.getProperty(
                 APP_CONFIG_PROP_FILTER,

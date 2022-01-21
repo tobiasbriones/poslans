@@ -6,11 +6,11 @@ package dev.tobiasbriones.poslans.sm;
 
 public interface ApplicationMessageReporter {
 
-    public abstract void showInfoMessage(String msg);
+    void showInfoMessage(String msg);
 
-    public abstract void showErrorMessage(String msg);
+    void showErrorMessage(String msg);
 
-    public abstract void showErrorMessage(String msg, Exception e);
+    void showErrorMessage(String msg, Exception e);
 
-    public abstract void showUnexpectedErrorMessage(String msg, Exception e);
+    void showUnexpectedErrorMessage(String msg, Exception e);
 }

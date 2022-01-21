@@ -21,7 +21,9 @@ import java.awt.event.*;
 import java.util.HashSet;
 import java.util.Vector;
 
-public final class CareerDataDialog extends JDialog implements WindowListener,
+public final class CareerDataDialog extends JDialog implements R,
+                                                               Strings,
+                                                               WindowListener,
                                                                ActionListener,
                                                                MouseListener,
                                                                ImportExportDialog.Callback {
@@ -55,6 +57,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         void deleteClass(Class course);
 
         void createProfessor(
+            int id,
             String name,
             Professor.Title title,
             String specialization
@@ -99,7 +102,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         CareerDataHolder careerData,
         Callback callback
     ) {
-        super(mw, Strings.CAREER);
+        super(mw, CAREER);
         this.info = careerData;
         this.callback = callback;
         this.classesListModel = new DefaultListModel<>();
@@ -122,29 +125,26 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         final JScrollPane classroomsScroll = new JScrollPane(classroomsList);
         final JScrollPane professorSpecializationsScroll = new JScrollPane(
             professorSpecializationsList);
-        final JLabel classesLabel = new JLabel(Strings.CLASSES);
-        final JLabel professorsLabel = new JLabel(Strings.PROFESSORS);
-        final JLabel classroomsLabel = new JLabel(Strings.CLASSROOMS);
-        final JLabel professorSpecializationsLabel =
-            new JLabel(Strings.PROFESSOR_SPECIALIZATIONS);
+        final JLabel classesLabel = new JLabel(CLASSES);
+        final JLabel professorsLabel = new JLabel(PROFESSORS);
+        final JLabel classroomsLabel = new JLabel(CLASSROOMS);
+        final JLabel professorSpecializationsLabel = new JLabel(
+            PROFESSOR_SPECIALIZATIONS);
         final JButton careerInfoButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_career_info.png")));
         final JButton importExportButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_import_export.png")));
         final JButton deleteButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_delete.png")));
-        final JButton addClassButton = new JButton(Strings.ADD.toUpperCase());
-        final JButton addProfessorButton =
-            new JButton(Strings.ADD.toUpperCase());
-        final JButton addClassroomButton =
-            new JButton(Strings.ADD.toUpperCase());
+        final JButton addClassButton = new JButton(ADD.toUpperCase());
+        final JButton addProfessorButton = new JButton(ADD.toUpperCase());
+        final JButton addClassroomButton = new JButton(ADD.toUpperCase());
         final JButton addProfessorSpecializationButton =
-            new JButton(Strings.ADD.toUpperCase());
-        final JButton discardButton =
-            new JButton(Strings.DISCARD.toUpperCase());
-        final JButton saveButton = new JButton(Strings.SAVE.toUpperCase());
-        final JMenuItem editItem = new JMenuItem(Strings.EDIT);
-        final JMenuItem deleteItem = new JMenuItem(Strings.DELETE);
+            new JButton(ADD.toUpperCase());
+        final JButton discardButton = new JButton(DISCARD.toUpperCase());
+        final JButton saveButton = new JButton(SAVE.toUpperCase());
+        final JMenuItem editItem = new JMenuItem(EDIT);
+        final JMenuItem deleteItem = new JMenuItem(DELETE);
         final GridBagConstraints gbc = new GridBagConstraints();
         // Set lists
         classesList.addMouseListener(this);
@@ -152,31 +152,32 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         classroomsList.addMouseListener(this);
         professorSpecializationsList.addMouseListener(this);
         // Set buttons
-        careerInfoButton.setName(R.CAREER_DIALOG_CAREER);
-        careerInfoButton.setToolTipText(Strings.CAREER_INFO_TIP);
+        careerInfoButton.setName(CAREER_DIALOG_CAREER);
+        careerInfoButton.setToolTipText(CAREER_INFO_TIP);
         careerInfoButton.addActionListener(this);
-        importExportButton.setName(R.CAREER_DIALOG_IMPORT_EXPORT);
-        importExportButton.setToolTipText(Strings.IMPORT_EXPORT);
+        importExportButton.setName(CAREER_DIALOG_IMPORT_EXPORT);
+        importExportButton.setToolTipText(IMPORT_EXPORT);
         importExportButton.addActionListener(this);
-        deleteButton.setName(R.CAREER_DIALOG_DELETE);
-        deleteButton.setToolTipText(Strings.DELETE_FOREVER_TIP);
+        deleteButton.setName(CAREER_DIALOG_DELETE);
+        deleteButton.setToolTipText(DELETE_FOREVER_TIP);
         deleteButton.addActionListener(this);
-        addClassButton.setName(R.CAREER_DIALOG_ADD_CLASS);
+        addClassButton.setName(CAREER_DIALOG_ADD_CLASS);
         addClassButton.addActionListener(this);
-        addProfessorButton.setName(R.CAREER_DIALOG_ADD_PROFESSOR);
+        addProfessorButton.setName(CAREER_DIALOG_ADD_PROFESSOR);
         addProfessorButton.addActionListener(this);
-        addClassroomButton.setName(R.CAREER_DIALOG_ADD_CLASSROOM);
+        addClassroomButton.setName(CAREER_DIALOG_ADD_CLASSROOM);
         addClassroomButton.addActionListener(this);
-        addProfessorSpecializationButton.setName(R.CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION);
+        addProfessorSpecializationButton.setName(
+            CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION);
         addProfessorSpecializationButton.addActionListener(this);
-        discardButton.setName(R.CAREER_DIALOG_DISCARD);
+        discardButton.setName(CAREER_DIALOG_DISCARD);
         discardButton.addActionListener(this);
-        saveButton.setName(R.CAREER_DIALOG_SAVE);
+        saveButton.setName(CAREER_DIALOG_SAVE);
         saveButton.addActionListener(this);
         // Set popup menu
-        editItem.setName(R.CAREER_DIALOG_MENU_EDIT);
+        editItem.setName(CAREER_DIALOG_MENU_EDIT);
         editItem.addActionListener(this);
-        deleteItem.setName(R.CAREER_DIALOG_MENU_DELETE);
+        deleteItem.setName(CAREER_DIALOG_MENU_DELETE);
         deleteItem.addActionListener(this);
         popup.add(editItem);
         popup.add(deleteItem);
@@ -296,30 +297,27 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
     public void actionPerformed(ActionEvent e) {
         final String name = ((Component) e.getSource()).getName();
         switch (name) {
-            case R.CAREER_DIALOG_CAREER:
+            case CAREER_DIALOG_CAREER:
                 final String university = JOptionPane.showInputDialog(
                     this,
-                    Strings.UNIVERSITY_BELONG
+                    UNIVERSITY_BELONG
                 );
                 final String career = JOptionPane.showInputDialog(
                     this,
-                    Strings.SET_CAREER_NAME
+                    SET_CAREER_NAME
                 );
                 if (university == null || career == null || university.isEmpty() || career.isEmpty()) {
-                    JOptionPane.showMessageDialog(
-                        this,
-                        Strings.FILL_ALL_FIELDS
-                    );
+                    JOptionPane.showMessageDialog(this, FILL_ALL_FIELDS);
                     break;
                 }
                 callback.setCareerInformation(university, career);
                 break;
-            case R.CAREER_DIALOG_IMPORT_EXPORT:
+            case CAREER_DIALOG_IMPORT_EXPORT:
                 new ImportExportDialog(this);
                 break;
-            case R.CAREER_DIALOG_DELETE:
-                final String msg = Strings.DELETE_CAREER_DATA;
-                final String title = Strings.DELETE;
+            case CAREER_DIALOG_DELETE:
+                final String msg = DELETE_CAREER_DATA;
+                final String title = DELETE;
                 final int opt = JOptionPane.OK_CANCEL_OPTION;
                 final int msgType = JOptionPane.QUESTION_MESSAGE;
                 final ImageIcon icon = new ImageIcon("icons/ic_delete.png");
@@ -338,18 +336,18 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                     updateUI();
                 }
                 break;
-            case R.CAREER_DIALOG_DISCARD:
+            case CAREER_DIALOG_DISCARD:
                 dispose();
                 break;
-            case R.CAREER_DIALOG_SAVE:
+            case CAREER_DIALOG_SAVE:
                 callback.save();
                 dispose();
                 break;
-            case R.CAREER_DIALOG_MENU_EDIT:
+            case CAREER_DIALOG_MENU_EDIT:
                 openEditInputDialog(popupTarget);
                 popupTarget = null;
                 break;
-            case R.CAREER_DIALOG_MENU_DELETE:
+            case CAREER_DIALOG_MENU_DELETE:
                 if (popupTarget == classesList) {
                     callback.deleteClass(classesList.getSelectedValue());
                 }
@@ -365,31 +363,31 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 }
                 popupTarget = null;
                 break;
-            case R.CAREER_DIALOG_ADD_CLASS:
+            case CAREER_DIALOG_ADD_CLASS:
                 new CareerDataInputDialog(
                     this,
                     callback,
                     CareerDataInputDialog.TYPE_CLASS
                 );
                 break;
-            case R.CAREER_DIALOG_ADD_PROFESSOR:
+            case CAREER_DIALOG_ADD_PROFESSOR:
                 new CareerDataInputDialog(
                     this,
                     callback,
                     CareerDataInputDialog.TYPE_PROFESSOR
                 );
                 break;
-            case R.CAREER_DIALOG_ADD_CLASSROOM:
+            case CAREER_DIALOG_ADD_CLASSROOM:
                 new CareerDataInputDialog(
                     this,
                     callback,
                     CareerDataInputDialog.TYPE_CLASSROOM
                 );
                 break;
-            case R.CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION:
+            case CAREER_DIALOG_ADD_PROFESSOR_SPECIALIZATION:
                 final String specialization = JOptionPane.showInputDialog(
                     this,
-                    Strings.NEW_PROFESSOR_SPECIALIZATION
+                    NEW_PROFESSOR_SPECIALIZATION
                 );
                 if (specialization != null && !specialization.trim()
                                                              .isEmpty()) {
@@ -437,9 +435,11 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         Sheet professorSpecializationsSheet
     ) {
         final HashSet<String> specializations = new HashSet<>();
+        final HashSet<Integer> professorsId = new HashSet<>();
         String classCode = null;
         String className = null;
         String classTag = null;
+        int professorId = -1;
         String professorName = null;
         String classroomBuilding = null;
         String classroomDescription = null;
@@ -451,9 +451,13 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
         int classroomNumber = -1;
         int i = 0;
         boolean isFirstRow = true;
+        String currentSheet = "";
+        int currentRow = -1;
         callback.clear();
         try {
+            currentSheet = "Professor specialization sheet";
             for (Row row : professorSpecializationsSheet) {
+                currentRow++;
                 if (isFirstRow) {
                     isFirstRow = false;
                     continue;
@@ -463,7 +467,10 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 specializations.add(cell.getStringCellValue());
             }
             isFirstRow = true;
+            currentSheet = "Classes sheet";
+            currentRow = -1;
             for (Row row : classesSheet) {
+                currentRow++;
                 if (isFirstRow) {
                     isFirstRow = false;
                     continue;
@@ -502,7 +509,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 if (!specializations.contains(classTag)) {
                     final String msg =
                         "Please check your document, the tag " + classTag
-                        + " for class " + classCode + " doesn"
+                        + " for class " + classCode + " don"
                         + "'t match with those in "
                         + "Professor specializations sheet. "
                         + "Classes sheet.";
@@ -520,7 +527,10 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 );
             }
             isFirstRow = true;
+            currentSheet = "Professors sheet";
+            currentRow = -1;
             for (Row row : professorsSheet) {
+                currentRow++;
                 if (isFirstRow) {
                     isFirstRow = false;
                     continue;
@@ -528,19 +538,32 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                 for (Cell cell : row) {
                     switch (i) {
                         case 0:
-                            professorName = cell.getStringCellValue();
+                            professorId = (int) cell.getNumericCellValue();
+                            if (professorsId.contains(professorId)) {
+                                final String msg = "Please check your "
+                                                   + "document, duplicated id "
+                                                   + "for professors "
+                                                   + "Professors sheet. Row: "
+                                                   + (currentRow + 1);
+                                handleImportError(msg);
+                                return;
+                            }
+                            professorsId.add(professorId);
                             break;
                         case 1:
+                            professorName = cell.getStringCellValue();
+                            break;
+                        case 2:
                             professorTitle =
                                 Professor.Title.fromString(cell.getStringCellValue());
                             break;
-                        case 2:
+                        case 3:
                             professorSpecialization = cell.getStringCellValue();
                             break;
                     }
                     i++;
                 }
-                if (i != 3) {
+                if (i != 4) {
                     if (i == 1) {
                         professorTitle = Professor.Title.OTHER;
                     }
@@ -569,13 +592,17 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
                                                    + " " + professorName);
                 }
                 callback.createProfessor(
+                    professorId,
                     professorName,
                     professorTitle,
                     professorSpecialization
                 );
             }
             isFirstRow = true;
+            currentSheet = "Classrooms sheet";
+            currentRow = -1;
             for (Row row : classroomsSheet) {
+                currentRow++;
                 if (isFirstRow) {
                     isFirstRow = false;
                     continue;
@@ -619,7 +646,7 @@ public final class CareerDataDialog extends JDialog implements WindowListener,
             handleImportError("There is a cell with no value. " + e);
         }
         catch (Exception e) {
-            handleImportError(e.toString());
+            handleImportError(e + " Sheet: " + currentSheet + ", Row: " + currentRow);
             return;
         }
         callback.save();

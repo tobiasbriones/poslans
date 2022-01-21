@@ -8,6 +8,8 @@ package dev.tobiasbriones.poslans.sm.ui;
 interface R {
     String MW_TOOLBAR_OPEN_SECTION = "open-section";
 
+    String MW_TOOLBAR_SAVE_TERM = "save-term";
+
     String MW_TOOLBAR_OPEN_SECTION_IMPORT = "open-section-import";
 
     String MW_TOOLBAR_SECTIONS_INFO = "sections-info";
@@ -20,7 +22,7 @@ interface R {
 
     String MW_TOOLBAR_FILTER = "filter";
 
-    String MW_TOOLBAR_CAREER_DATA = "career-data";
+    String MW_TOOLBAR_CONFIG = "config";
 
     String MW_TOOLBAR_ABOUT = "about";
 

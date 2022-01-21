@@ -26,18 +26,18 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-import static dev.tobiasbriones.poslans.sm.ui.R.MW_TOOLBAR_OPEN_SECTION_IMPORT;
+import static dev.tobiasbriones.poslans.sm.ui.R.*;
 import static dev.tobiasbriones.poslans.sm.ui.Strings.*;
 
 public final class MainWindow extends JFrame implements ActionListener,
                                                         MouseListener,
-                                                        SectionDialog.Callback,
-                                                        HistoryDialog.Callback {
+                                                        SectionDialog.Callback {
     private static final long serialVersionUID = -7050635316113527857L;
     private static final Dimension FRAME_SIZE = new Dimension(520, 600);
     private static final Dimension TOOLBAR_SIZE = new Dimension(
@@ -69,7 +69,7 @@ public final class MainWindow extends JFrame implements ActionListener,
 
         void createNewTerm(String name);
 
-        void saveToHistory();
+        void saveTerm() throws IOException;
 
         void importSections(Sheet sheet);
 
@@ -98,7 +98,7 @@ public final class MainWindow extends JFrame implements ActionListener,
     private Section popupTarget;
 
     public MainWindow(CareerDataHolder info, Callback callback) {
-        super(Strings.APP_NAME);
+        super(APP_NAME);
         this.careerData = info;
         this.callback = callback;
         this.list = new JList<>();
@@ -111,6 +111,8 @@ public final class MainWindow extends JFrame implements ActionListener,
         final JToolBar toolBar = new JToolBar();
         final JButton openSectionButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_add.png")));
+        final JButton saveTermButton = new JButton(new ImageIcon(
+            Main.getIconPath("ic_save.png")));
         final JButton openSectionImportButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_add_import.png")));
         final JButton sectionsInfoButton = new JButton(new ImageIcon(
@@ -133,46 +135,50 @@ public final class MainWindow extends JFrame implements ActionListener,
         final JMenuItem menuEdit = new JMenuItem(EDIT);
         final JMenuItem menuDelete = new JMenuItem(DELETE);
         // Set popup
-        menuEdit.setName(R.MW_MENU_EDIT);
+        menuEdit.setName(MW_MENU_EDIT);
         menuEdit.addActionListener(this);
-        menuDelete.setName(R.MW_MENU_DELETE);
+        menuDelete.setName(MW_MENU_DELETE);
         menuDelete.addActionListener(this);
         popup.add(menuEdit);
         popup.add(menuDelete);
         // ToolBar
-        openSectionButton.setName(R.MW_TOOLBAR_OPEN_SECTION);
+        openSectionButton.setName(MW_TOOLBAR_OPEN_SECTION);
         openSectionButton.setToolTipText(OPEN_SECTION_TIP);
         openSectionButton.setBackground(TOP_BACKGROUND_COLOR);
         openSectionButton.addActionListener(this);
+        saveTermButton.setName(MW_TOOLBAR_SAVE_TERM);
+        saveTermButton.setToolTipText(SAVE_TERM_TIP);
+        saveTermButton.setBackground(TOP_BACKGROUND_COLOR);
+        saveTermButton.addActionListener(this);
         openSectionImportButton.setName(MW_TOOLBAR_OPEN_SECTION_IMPORT);
         openSectionImportButton.setToolTipText(OPEN_SECTION_IMPORT_TIP);
         openSectionImportButton.setBackground(TOP_BACKGROUND_COLOR);
         openSectionImportButton.addActionListener(this);
-        sectionsInfoButton.setName(R.MW_TOOLBAR_SECTIONS_INFO);
+        sectionsInfoButton.setName(MW_TOOLBAR_SECTIONS_INFO);
         sectionsInfoButton.setToolTipText(SECTIONS_INFO_TIP);
         sectionsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
         sectionsInfoButton.addActionListener(this);
-        classroomsInfoButton.setName(R.MW_TOOLBAR_CLASSROOMS_INFO);
+        classroomsInfoButton.setName(MW_TOOLBAR_CLASSROOMS_INFO);
         classroomsInfoButton.setToolTipText(CLASSROOMS_INFO_TIP);
         classroomsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
         classroomsInfoButton.addActionListener(this);
-        professorsButton.setName(R.MW_TOOLBAR_PROFESSORS);
+        professorsButton.setName(MW_TOOLBAR_PROFESSORS);
         professorsButton.setToolTipText(PROFESSORS_TIP);
         professorsButton.setBackground(TOP_BACKGROUND_COLOR);
         professorsButton.addActionListener(this);
-        historyButton.setName(R.MW_TOOLBAR_HISTORY);
+        historyButton.setName(MW_TOOLBAR_HISTORY);
         historyButton.setToolTipText(HISTORY_TIP);
         historyButton.setBackground(TOP_BACKGROUND_COLOR);
         historyButton.addActionListener(this);
-        filterButton.setName(R.MW_TOOLBAR_FILTER);
+        filterButton.setName(MW_TOOLBAR_FILTER);
         filterButton.setToolTipText(FILTER_TIP);
         filterButton.setBackground(TOP_BACKGROUND_COLOR);
         filterButton.addActionListener(this);
-        careerDataButton.setName(R.MW_TOOLBAR_CAREER_DATA);
-        careerDataButton.setToolTipText(CAREER_DATA_TIP);
+        careerDataButton.setName(MW_TOOLBAR_CONFIG);
+        careerDataButton.setToolTipText(CONFIG_TIP);
         careerDataButton.setBackground(TOP_BACKGROUND_COLOR);
         careerDataButton.addActionListener(this);
-        aboutButton.setName(R.MW_TOOLBAR_ABOUT);
+        aboutButton.setName(MW_TOOLBAR_ABOUT);
         aboutButton.setToolTipText(ABOUT_TIP);
         aboutButton.setBackground(TOP_BACKGROUND_COLOR);
         aboutButton.addActionListener(this);
@@ -181,6 +187,7 @@ public final class MainWindow extends JFrame implements ActionListener,
         toolBar.setFloatable(false);
         toolBar.setBackground(TOP_BACKGROUND_COLOR);
         toolBar.add(openSectionButton);
+        toolBar.add(saveTermButton);
         toolBar.add(openSectionImportButton);
         toolBar.add(sectionsInfoButton);
         toolBar.add(classroomsInfoButton);
@@ -190,10 +197,9 @@ public final class MainWindow extends JFrame implements ActionListener,
         toolBar.add(careerDataButton);
         toolBar.add(aboutButton);
         // Top panel
-        newTermButton.setName(R.MW_NEW_TERM);
+        newTermButton.setName(MW_NEW_TERM);
         newTermButton.setText("<html><span style='font-family:Roboto;'>"
-                              + Strings.NEW_TERM.toUpperCase() + "</span"
-                              + "></html>");
+                              + NEW_TERM.toUpperCase() + "</span></html>");
         newTermButton.addActionListener(this);
         topPanel.setMaximumSize(TOP_PANEL_SIZE);
         topPanel.setLayout(new BorderLayout());
@@ -224,6 +230,14 @@ public final class MainWindow extends JFrame implements ActionListener,
         setVisible(true);
     }
 
+    CareerDataHolder getCareerData() {
+        return careerData;
+    }
+
+    CareerDataDialog.Callback getCareerDataDialogCallback() {
+        return callback.getCareerDataDialogCallback();
+    }
+
     public void setTerm(String term) {
         termLabel.setText(
             "<html><span style='font-family:Roboto Light;font-weight:400;"
@@ -235,8 +249,21 @@ public final class MainWindow extends JFrame implements ActionListener,
     public void actionPerformed(ActionEvent e) {
         final String name = ((Component) e.getSource()).getName();
         switch (name) {
-            case R.MW_TOOLBAR_OPEN_SECTION:
+            case MW_TOOLBAR_OPEN_SECTION:
                 new SectionDialog(this, careerData);
+                break;
+            case MW_TOOLBAR_SAVE_TERM:
+                try {
+                    callback.saveTerm();
+                }
+                catch (IOException ex) {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        ex,
+                        "Fail",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
                 break;
             case MW_TOOLBAR_OPEN_SECTION_IMPORT:
                 if (JOptionPane.showConfirmDialog(
@@ -245,7 +272,9 @@ public final class MainWindow extends JFrame implements ActionListener,
                 ) == JOptionPane.OK_OPTION) {
                     final JFileChooser fileChooser = new JFileChooser();
                     fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
-                    fileChooser.setCurrentDirectory(new File("data/history"));
+                    fileChooser.setCurrentDirectory(
+                        new File("sections-manager/data/history")
+                    );
                     if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
                         try {
                             final File file = fileChooser.getSelectedFile();
@@ -258,7 +287,7 @@ public final class MainWindow extends JFrame implements ActionListener,
                             JOptionPane.showMessageDialog(
                                 this,
                                 ex,
-                                Strings.ERROR_OPENING,
+                                ERROR_OPENING,
                                 JOptionPane.ERROR_MESSAGE
                             );
                             break;
@@ -266,34 +295,30 @@ public final class MainWindow extends JFrame implements ActionListener,
                     }
                 }
                 break;
-            case R.MW_TOOLBAR_SECTIONS_INFO:
+            case MW_TOOLBAR_SECTIONS_INFO:
                 new SectionsInfoDialog(this, callback.listSections());
                 break;
-            case R.MW_TOOLBAR_CLASSROOMS_INFO:
+            case MW_TOOLBAR_CLASSROOMS_INFO:
                 new ClassroomsInfoDialog(
                     this,
                     callback.getClassroomsTakenHours()
                 );
                 break;
-            case R.MW_TOOLBAR_PROFESSORS:
+            case MW_TOOLBAR_PROFESSORS:
                 new ProfessorsLoadDialog(this, callback.getProfessorsLoad());
                 break;
-            case R.MW_TOOLBAR_HISTORY:
+            case MW_TOOLBAR_HISTORY:
                 new HistoryDialog(this, callback.getHistory());
                 break;
-            case R.MW_TOOLBAR_FILTER:
+            case MW_TOOLBAR_FILTER:
                 new FilterDialog(this, callback);
                 break;
-            case R.MW_TOOLBAR_CAREER_DATA:
-                new CareerDataDialog(
-                    this,
-                    careerData,
-                    callback.getCareerDataDialogCallback()
-                );
+            case MW_TOOLBAR_CONFIG:
+                new ConfigWindow(this);
                 break;
-            case R.MW_TOOLBAR_ABOUT:
+            case MW_TOOLBAR_ABOUT:
                 final int aboutType = JOptionPane.INFORMATION_MESSAGE;
-                final Icon icon = new ImageIcon("icons/ic_about.png");
+                final Icon icon = new ImageIcon(Main.getIconPath("ic_about.png"));
                 JOptionPane.showMessageDialog(
                     this,
                     ABOUT_MSG,
@@ -302,7 +327,7 @@ public final class MainWindow extends JFrame implements ActionListener,
                     icon
                 );
                 break;
-            case R.MW_NEW_TERM:
+            case MW_NEW_TERM:
                 final int termType = JOptionPane.YES_NO_OPTION;
                 final int msgType = JOptionPane.QUESTION_MESSAGE;
                 final int option = JOptionPane.showConfirmDialog(
@@ -321,18 +346,15 @@ public final class MainWindow extends JFrame implements ActionListener,
                         callback.createNewTerm(newTermName);
                     }
                     else {
-                        JOptionPane.showMessageDialog(
-                            this,
-                            ACTION_CANCELLED
-                        );
+                        JOptionPane.showMessageDialog(this, ACTION_CANCELLED);
                     }
                 }
                 break;
-            case R.MW_MENU_EDIT:
+            case MW_MENU_EDIT:
                 new SectionDialog(this, careerData, popupTarget);
                 popupTarget = null;
                 break;
-            case R.MW_MENU_DELETE:
+            case MW_MENU_DELETE:
                 final int delete = list.getSelectedIndex();
                 if (delete != -1) {
                     callback.deleteSection(delete);
@@ -410,11 +432,6 @@ public final class MainWindow extends JFrame implements ActionListener,
         );
     }
 
-    @Override
-    public void saveToHistory() {
-        callback.saveToHistory();
-    }
-
     public void setTitle(String title) {
         titleLabel.setText(
             "<html><span style='font-family:Roboto Light;font-weight:400;"
@@ -423,8 +440,8 @@ public final class MainWindow extends JFrame implements ActionListener,
     }
 
     public void welcome() {
-        final String msg = Strings.WELCOME_MSG;
-        final String title = Strings.GETTING_STARTED;
+        final String msg = WELCOME_MSG;
+        final String title = GETTING_STARTED;
         final int optionType = JOptionPane.OK_CANCEL_OPTION;
         final int msgType = JOptionPane.INFORMATION_MESSAGE;
         final int option = JOptionPane.showConfirmDialog(
@@ -474,7 +491,7 @@ public final class MainWindow extends JFrame implements ActionListener,
             JOptionPane.showMessageDialog(
                 this,
                 msg,
-                Strings.CHECK_YOUR_INPUT,
+                CHECK_YOUR_INPUT,
                 JOptionPane.WARNING_MESSAGE
             );
             return false;
@@ -483,7 +500,6 @@ public final class MainWindow extends JFrame implements ActionListener,
     }
 
     private static final class Row extends JPanel implements ListCellRenderer<Section> {
-
         private static final long serialVersionUID = -4318250611361812955L;
         private static final Border BORDER = new EmptyBorder(10, 20, 10, 20);
         private final JPanel panelLeft;
@@ -552,17 +568,15 @@ public final class MainWindow extends JFrame implements ActionListener,
         private final JList<String> list;
 
         FilterDialog(MainWindow mw, Callback callback) {
-            super(mw, Strings.FILTER_TIP);
+            super(mw, FILTER_TIP);
             this.callback = callback;
             this.list = new JList<>();
             final JPanel panel = new JPanel();
             final DefaultListModel<String> listModel = new DefaultListModel<>();
             final JPanel actionsPanel = new JPanel();
-            final JButton discardButton =
-                new JButton(Strings.DISCARD.toUpperCase());
-            final JButton noFilterButton =
-                new JButton(Strings.NO_FILTER.toUpperCase());
-            final JButton saveButton = new JButton(Strings.SAVE.toUpperCase());
+            final JButton discardButton = new JButton(DISCARD.toUpperCase());
+            final JButton noFilterButton = new JButton(NO_FILTER.toUpperCase());
+            final JButton saveButton = new JButton(SAVE.toUpperCase());
             final List<String> filter = callback.getFilter();
             final int[] selectedIndices = new int[filter.size()];
             int i = 0;
@@ -601,7 +615,7 @@ public final class MainWindow extends JFrame implements ActionListener,
             setLocationRelativeTo(null);
             setModalityType(ModalityType.APPLICATION_MODAL);
             setIconImage(Toolkit.getDefaultToolkit()
-                                .getImage("icons/ic_filter.png"));
+                                .getImage(Main.getIconPath("ic_filter.png")));
             setVisible(true);
         }
 

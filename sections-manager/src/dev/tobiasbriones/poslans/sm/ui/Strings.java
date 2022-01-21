@@ -10,6 +10,8 @@ public interface Strings {
 
     String OPEN_SECTION_TIP = "Open a new section";
 
+    String SAVE_TERM_TIP = "Save current data";
+
     String OPEN_SECTION_IMPORT_TIP = "Import sections to "
                                      + "add them to the "
                                      + "current term";
@@ -24,13 +26,11 @@ public interface Strings {
 
     String FILTER_TIP = "Filter sections";
 
-    String CAREER_DATA_TIP = "View and load your career's"
-                             + " data";
+    String CONFIG_TIP = "Config";
 
     String ABOUT_TIP = "About Sections Manager";
 
-    String CAREER_INFO_TIP = "Set your university and "
-                             + "career";
+    String CAREER_INFO_TIP = "Set your university and career";
 
     String IMPORT_EXPORT_TIP = "Import / Export";
 
@@ -52,13 +52,9 @@ public interface Strings {
 
     String WELCOME_MSG = "<html>Welcome! Let's start "
                          + "loading your career's data"
-                         + ".<br>You wil be able to "
-                         + "import your xlsx file or use "
-                         + "the app's data editor.</html>";
-    String IMPORT_SECTIONS = "Do you want to import "
-                             + "sections from your excel "
-                             + "history?\nThey will be "
-                             + "added to the current term.";
+                         + ".<br>You wil be able to import"
+                         + " your xlsx file or use the "
+                         + "app's data editor.</html>";
 
     String GETTING_STARTED = "Getting started";
 
@@ -87,6 +83,8 @@ public interface Strings {
 
     String SECTION = "Section";
 
+    String GO_TO_FOLDER = "Go to folder";
+
     String SELECT_CLASSROOM = "Select classroom";
 
     String UNIVERSITY_BELONG = "What university do you "
@@ -96,6 +94,12 @@ public interface Strings {
 
     String FILL_ALL_FIELDS = "You didn't fill all the "
                              + "fields";
+
+    String IMPORT_SECTIONS = "Do you want to import "
+                             + "sections from your excel "
+                             + "history?\nThey will be "
+                             + "added to the current "
+                             + "term.";
 
     String SPECIALIZATION = "Specialization";
 
@@ -107,8 +111,8 @@ public interface Strings {
                                           "specialization";
 
     String DELETE_CAREER_DATA = "<html>Delete career "
-                                + "data?<br>This can't be"
-                                + " undone</html>";
+                                + "data?<br>This can't be "
+                                + "undone</html>";
 
     String HISTORY = "History";
 
@@ -151,8 +155,8 @@ public interface Strings {
     String IMPORT_EXPORT = "Import/Export";
 
     String IMPORT_EXPORT_LABEL = "<html>Import your data "
-                                 + "or export the current"
-                                 + " data, Excel file "
+                                 + "or export the current "
+                                 + "data, Excel file "
                                  + "format.<br>Importing "
                                  + "data will overwrite "
                                  + "your current data"
@@ -231,9 +235,8 @@ public interface Strings {
                         + "'>Load</span></html>";
 
     String ABOUT = "About";
-
-    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.2.1"
-                       + ".0<br>This software includes"
+    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.3"
+                       + "<br>This software includes"
                        + " the following libraries:<br>- Apache POI library "
                        + "under "
                        + "the Apache License, Version 2.0 - See <a "
