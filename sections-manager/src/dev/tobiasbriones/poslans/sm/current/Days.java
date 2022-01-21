@@ -31,4 +31,22 @@ public interface Days {
         "Fri",
         "Sat"
     };
+
+    static int fromMiniDayStringToDay(String miniDay) {
+        switch (miniDay.trim().toUpperCase()) {
+            case "MON":
+                return 0;
+            case "TUE":
+                return 1;
+            case "WED":
+                return 2;
+            case "THU":
+                return 3;
+            case "FRI":
+                return 4;
+            case "SAT":
+                return 5;
+        }
+        return -1;
+    }
 }

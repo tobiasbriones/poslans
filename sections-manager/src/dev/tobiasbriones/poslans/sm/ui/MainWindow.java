@@ -13,6 +13,9 @@ import dev.tobiasbriones.poslans.sm.current.HistoryItem;
 import dev.tobiasbriones.poslans.sm.current.ProfessorAcademicLoad;
 import dev.tobiasbriones.poslans.sm.current.Section;
 import dev.tobiasbriones.poslans.sm.current.Time;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import javax.swing.*;
 import javax.swing.border.Border;
@@ -22,14 +25,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.File;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
-public final class MainWindow extends JFrame implements R,
-                                                        Strings,
-                                                        ActionListener,
+import static dev.tobiasbriones.poslans.sm.ui.R.MW_TOOLBAR_OPEN_SECTION_IMPORT;
+import static dev.tobiasbriones.poslans.sm.ui.Strings.*;
+
+public final class MainWindow extends JFrame implements ActionListener,
                                                         MouseListener,
                                                         SectionDialog.Callback,
                                                         HistoryDialog.Callback {
@@ -65,6 +70,8 @@ public final class MainWindow extends JFrame implements R,
         void createNewTerm(String name);
 
         void saveToHistory();
+
+        void importSections(Sheet sheet);
 
         String openSection(
             Class course, Professor professor,
@@ -104,6 +111,8 @@ public final class MainWindow extends JFrame implements R,
         final JToolBar toolBar = new JToolBar();
         final JButton openSectionButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_add.png")));
+        final JButton openSectionImportButton = new JButton(new ImageIcon(
+            Main.getIconPath("ic_add_import.png")));
         final JButton sectionsInfoButton = new JButton(new ImageIcon(
             Main.getIconPath("ic_sections_info.png")));
         final JButton classroomsInfoButton = new JButton(new ImageIcon(
@@ -121,8 +130,8 @@ public final class MainWindow extends JFrame implements R,
         final JButton newTermButton = new JButton();
         final JPanel topPanel = new JPanel();
         final JScrollPane scrollPane = new JScrollPane(list);
-        final JMenuItem menuEdit = new JMenuItem(Strings.EDIT);
-        final JMenuItem menuDelete = new JMenuItem(Strings.DELETE);
+        final JMenuItem menuEdit = new JMenuItem(EDIT);
+        final JMenuItem menuDelete = new JMenuItem(DELETE);
         // Set popup
         menuEdit.setName(R.MW_MENU_EDIT);
         menuEdit.addActionListener(this);
@@ -132,35 +141,39 @@ public final class MainWindow extends JFrame implements R,
         popup.add(menuDelete);
         // ToolBar
         openSectionButton.setName(R.MW_TOOLBAR_OPEN_SECTION);
-        openSectionButton.setToolTipText(Strings.OPEN_SECTION_TIP);
+        openSectionButton.setToolTipText(OPEN_SECTION_TIP);
         openSectionButton.setBackground(TOP_BACKGROUND_COLOR);
         openSectionButton.addActionListener(this);
+        openSectionImportButton.setName(MW_TOOLBAR_OPEN_SECTION_IMPORT);
+        openSectionImportButton.setToolTipText(OPEN_SECTION_IMPORT_TIP);
+        openSectionImportButton.setBackground(TOP_BACKGROUND_COLOR);
+        openSectionImportButton.addActionListener(this);
         sectionsInfoButton.setName(R.MW_TOOLBAR_SECTIONS_INFO);
-        sectionsInfoButton.setToolTipText(Strings.SECTIONS_INFO_TIP);
+        sectionsInfoButton.setToolTipText(SECTIONS_INFO_TIP);
         sectionsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
         sectionsInfoButton.addActionListener(this);
         classroomsInfoButton.setName(R.MW_TOOLBAR_CLASSROOMS_INFO);
-        classroomsInfoButton.setToolTipText(Strings.CLASSROOMS_INFO_TIP);
+        classroomsInfoButton.setToolTipText(CLASSROOMS_INFO_TIP);
         classroomsInfoButton.setBackground(TOP_BACKGROUND_COLOR);
         classroomsInfoButton.addActionListener(this);
         professorsButton.setName(R.MW_TOOLBAR_PROFESSORS);
-        professorsButton.setToolTipText(Strings.PROFESSORS_TIP);
+        professorsButton.setToolTipText(PROFESSORS_TIP);
         professorsButton.setBackground(TOP_BACKGROUND_COLOR);
         professorsButton.addActionListener(this);
         historyButton.setName(R.MW_TOOLBAR_HISTORY);
-        historyButton.setToolTipText(Strings.HISTORY_TIP);
+        historyButton.setToolTipText(HISTORY_TIP);
         historyButton.setBackground(TOP_BACKGROUND_COLOR);
         historyButton.addActionListener(this);
         filterButton.setName(R.MW_TOOLBAR_FILTER);
-        filterButton.setToolTipText(Strings.FILTER_TIP);
+        filterButton.setToolTipText(FILTER_TIP);
         filterButton.setBackground(TOP_BACKGROUND_COLOR);
         filterButton.addActionListener(this);
         careerDataButton.setName(R.MW_TOOLBAR_CAREER_DATA);
-        careerDataButton.setToolTipText(Strings.CAREER_DATA_TIP);
+        careerDataButton.setToolTipText(CAREER_DATA_TIP);
         careerDataButton.setBackground(TOP_BACKGROUND_COLOR);
         careerDataButton.addActionListener(this);
         aboutButton.setName(R.MW_TOOLBAR_ABOUT);
-        aboutButton.setToolTipText(Strings.ABOUT_TIP);
+        aboutButton.setToolTipText(ABOUT_TIP);
         aboutButton.setBackground(TOP_BACKGROUND_COLOR);
         aboutButton.addActionListener(this);
         toolBar.setMaximumSize(TOOLBAR_SIZE);
@@ -168,6 +181,7 @@ public final class MainWindow extends JFrame implements R,
         toolBar.setFloatable(false);
         toolBar.setBackground(TOP_BACKGROUND_COLOR);
         toolBar.add(openSectionButton);
+        toolBar.add(openSectionImportButton);
         toolBar.add(sectionsInfoButton);
         toolBar.add(classroomsInfoButton);
         toolBar.add(professorsButton);
@@ -178,7 +192,8 @@ public final class MainWindow extends JFrame implements R,
         // Top panel
         newTermButton.setName(R.MW_NEW_TERM);
         newTermButton.setText("<html><span style='font-family:Roboto;'>"
-                              + Strings.NEW_TERM.toUpperCase() + "</span></html>");
+                              + Strings.NEW_TERM.toUpperCase() + "</span"
+                              + "></html>");
         newTermButton.addActionListener(this);
         topPanel.setMaximumSize(TOP_PANEL_SIZE);
         topPanel.setLayout(new BorderLayout());
@@ -223,6 +238,34 @@ public final class MainWindow extends JFrame implements R,
             case R.MW_TOOLBAR_OPEN_SECTION:
                 new SectionDialog(this, careerData);
                 break;
+            case MW_TOOLBAR_OPEN_SECTION_IMPORT:
+                if (JOptionPane.showConfirmDialog(
+                    this,
+                    IMPORT_SECTIONS
+                ) == JOptionPane.OK_OPTION) {
+                    final JFileChooser fileChooser = new JFileChooser();
+                    fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+                    fileChooser.setCurrentDirectory(new File("data/history"));
+                    if (fileChooser.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
+                        try {
+                            final File file = fileChooser.getSelectedFile();
+                            final Workbook workbook = new XSSFWorkbook(file);
+                            final Sheet sheet = workbook.getSheetAt(0);
+                            callback.importSections(sheet);
+                            workbook.close();
+                        }
+                        catch (Exception ex) {
+                            JOptionPane.showMessageDialog(
+                                this,
+                                ex,
+                                Strings.ERROR_OPENING,
+                                JOptionPane.ERROR_MESSAGE
+                            );
+                            break;
+                        }
+                    }
+                }
+                break;
             case R.MW_TOOLBAR_SECTIONS_INFO:
                 new SectionsInfoDialog(this, callback.listSections());
                 break;
@@ -253,8 +296,8 @@ public final class MainWindow extends JFrame implements R,
                 final Icon icon = new ImageIcon("icons/ic_about.png");
                 JOptionPane.showMessageDialog(
                     this,
-                    Strings.ABOUT_MSG,
-                    Strings.ABOUT,
+                    ABOUT_MSG,
+                    ABOUT,
                     aboutType,
                     icon
                 );
@@ -264,22 +307,23 @@ public final class MainWindow extends JFrame implements R,
                 final int msgType = JOptionPane.QUESTION_MESSAGE;
                 final int option = JOptionPane.showConfirmDialog(
                     this,
-                    Strings.NEW_TERM_MSG,
-                    Strings.NEW_TERM,
+                    NEW_TERM_MSG,
+                    NEW_TERM,
                     termType,
                     msgType
                 );
                 if (option == JOptionPane.YES_OPTION) {
                     final String newTermName = JOptionPane.showInputDialog(
                         this,
-                        Strings.SET_TERM_NAME
+                        SET_TERM_NAME
                     );
                     if (newTermName != null && !newTermName.isEmpty()) {
                         callback.createNewTerm(newTermName);
                     }
                     else {
-                        JOptionPane.showMessageDialog(this,
-                                                      Strings.ACTION_CANCELLED
+                        JOptionPane.showMessageDialog(
+                            this,
+                            ACTION_CANCELLED
                         );
                     }
                 }
@@ -439,6 +483,7 @@ public final class MainWindow extends JFrame implements R,
     }
 
     private static final class Row extends JPanel implements ListCellRenderer<Section> {
+
         private static final long serialVersionUID = -4318250611361812955L;
         private static final Border BORDER = new EmptyBorder(10, 20, 10, 20);
         private final JPanel panelLeft;
@@ -502,7 +547,6 @@ public final class MainWindow extends JFrame implements R,
     }
 
     private static final class FilterDialog extends JDialog implements ActionListener {
-
         private static final long serialVersionUID = 8131151297294945556L;
         private final Callback callback;
         private final JList<String> list;
@@ -514,8 +558,10 @@ public final class MainWindow extends JFrame implements R,
             final JPanel panel = new JPanel();
             final DefaultListModel<String> listModel = new DefaultListModel<>();
             final JPanel actionsPanel = new JPanel();
-            final JButton discardButton = new JButton(Strings.DISCARD.toUpperCase());
-            final JButton noFilterButton = new JButton(Strings.NO_FILTER.toUpperCase());
+            final JButton discardButton =
+                new JButton(Strings.DISCARD.toUpperCase());
+            final JButton noFilterButton =
+                new JButton(Strings.NO_FILTER.toUpperCase());
             final JButton saveButton = new JButton(Strings.SAVE.toUpperCase());
             final List<String> filter = callback.getFilter();
             final int[] selectedIndices = new int[filter.size()];

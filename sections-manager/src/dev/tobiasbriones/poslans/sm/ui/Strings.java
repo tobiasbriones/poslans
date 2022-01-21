@@ -10,6 +10,10 @@ public interface Strings {
 
     String OPEN_SECTION_TIP = "Open a new section";
 
+    String OPEN_SECTION_IMPORT_TIP = "Import sections to "
+                                     + "add them to the "
+                                     + "current term";
+
     String SECTIONS_INFO_TIP = "Sections info";
 
     String CLASSROOMS_INFO_TIP = "Classrooms info";
@@ -51,6 +55,10 @@ public interface Strings {
                          + ".<br>You wil be able to "
                          + "import your xlsx file or use "
                          + "the app's data editor.</html>";
+    String IMPORT_SECTIONS = "Do you want to import "
+                             + "sections from your excel "
+                             + "history?\nThey will be "
+                             + "added to the current term.";
 
     String GETTING_STARTED = "Getting started";
 
@@ -224,7 +232,7 @@ public interface Strings {
 
     String ABOUT = "About";
 
-    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.2"
+    String ABOUT_MSG = "<html>Sections Manager v0.1-alpha.2.1"
                        + ".0<br>This software includes"
                        + " the following libraries:<br>- Apache POI library "
                        + "under "

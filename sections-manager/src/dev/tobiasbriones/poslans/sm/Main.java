@@ -10,6 +10,8 @@ import dev.tobiasbriones.poslans.sm.current.*;
 import dev.tobiasbriones.poslans.sm.ui.CareerDataDialog;
 import dev.tobiasbriones.poslans.sm.ui.MainWindow;
 import dev.tobiasbriones.poslans.sm.ui.Strings;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
 import org.json.JSONArray;
 import org.json.JSONException;
 
@@ -184,6 +186,129 @@ public final class Main extends Application implements MainWindow.Callback {
         catch (IOException e) {
             showErrorMessage("Fail to save. ", e);
         }
+    }
+
+
+    @Override
+    public void importSections(Sheet sheet) {
+        final List<Class> classesIterator = careerData.getClasses();
+        final List<Professor> professorsIterator = careerData.getProfessors();
+        final List<Classroom> classroomsIterator = careerData.getClassrooms();
+        String currentClassCodeName = null;
+        String currentProfessorName = null;
+        String[] currentDaysString = null;
+        String currentBuildingNumberClassroom = null;
+        String currentTimeString = null;
+        Class currentClass = null;
+        Professor currentProfessor = null;
+        int[] currentDays = null;
+        Classroom currentClassroom = null;
+        Time currentTime = null;
+        int count = 0;
+        try {
+            for (Row row : sheet) {
+                if (row.getRowNum() == 0) {
+                    continue;
+                }
+                // Check if cell is footer sign
+                if (row.getCell(0).getStringCellValue()
+                       .equalsIgnoreCase("POWERED BY POSLANS SECTIONS "
+                                         + "MANAGER")) {
+                    break;
+                }
+                currentClassCodeName = row.getCell(0).getStringCellValue();
+                currentProfessorName = row.getCell(1).getStringCellValue();
+                currentDaysString = row.getCell(2).getStringCellValue()
+                                       .split(",");
+                currentBuildingNumberClassroom = row.getCell(3)
+                                                    .getStringCellValue();
+                currentTimeString = row.getCell(4).getStringCellValue();
+                currentClass = null;
+                for (Class next : classesIterator) {
+                    if (next.toString().equals(currentClassCodeName)) {
+                        currentClass = next;
+                        break;
+                    }
+                }
+                if (currentClass == null) {
+                    throw new Exception("Class not found: " + currentClassCodeName);
+                }
+                currentProfessor = null;
+                for (Professor next : professorsIterator) {
+                    if (next.getName().equals(currentProfessorName)) {
+                        currentProfessor = next;
+                        break;
+                    }
+                }
+                if (currentProfessor == null) {
+                    throw new Exception("Professor not found: " + currentProfessorName);
+                }
+                currentDays = new int[currentDaysString.length];
+                for (int i = 0; i < currentDays.length; i++) {
+                    currentDays[i] = Days.fromMiniDayStringToDay(
+                        currentDaysString[i]);
+                    if (currentDays[i] == -1) {
+                        throw new Exception("Invalid day: " + currentDaysString[i]);
+                    }
+                }
+                currentClassroom = null;
+                for (Classroom next : classroomsIterator) {
+                    if (next.toString()
+                            .equals(currentBuildingNumberClassroom)) {
+                        currentClassroom = next;
+                        break;
+                    }
+                }
+                if (currentClassroom == null) {
+                    throw new Exception("Classroom not found: " + currentBuildingNumberClassroom);
+                }
+                currentTime = Time.fromString(currentTimeString);
+                if (currentTime == null) {
+                    throw new Exception("Invalid time: " + currentTimeString);
+                }
+                // Open the current section
+                final Section newSection = sectionsEditor.openSection(
+                    currentClass,
+                    currentDays,
+                    currentClassroom,
+                    currentTime,
+                    currentProfessor
+                );
+                final String check = checkOverlapping(newSection, null);
+                count++;
+                // Overlapping verification
+                if (check != null) {
+                    throw new Exception(check);
+                }
+            }
+        }
+        catch (Exception e) {
+            final String msg = (e instanceof NullPointerException)
+                               ? "There's a null empty cell in the sheet"
+                               : e.getMessage();
+            // Clear editor
+            for (int i = 0; i < count; i++) {
+                sectionsEditor.delete(sectionsEditor.getSize() - 1);
+            }
+            JOptionPane.showMessageDialog(
+                mw,
+                msg,
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+        if (!save()) {
+            JOptionPane.showMessageDialog(
+                mw,
+                "It couldn't save changes",
+                "Error",
+                JOptionPane.ERROR_MESSAGE
+            );
+        }
+        loadData();
+        updateUI();
+        JOptionPane.showMessageDialog(mw, count + " sections added.");
     }
 
     // Returns null when there's no overlap

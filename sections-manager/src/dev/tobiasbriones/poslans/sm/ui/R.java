@@ -8,6 +8,8 @@ package dev.tobiasbriones.poslans.sm.ui;
 interface R {
     String MW_TOOLBAR_OPEN_SECTION = "open-section";
 
+    String MW_TOOLBAR_OPEN_SECTION_IMPORT = "open-section-import";
+
     String MW_TOOLBAR_SECTIONS_INFO = "sections-info";
 
     String MW_TOOLBAR_CLASSROOMS_INFO = "classrooms-info";
