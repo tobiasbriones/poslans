@@ -398,3 +398,33 @@ CREATE TABLE user_chat_group_message (
         REFERENCES student (id)
         ON DELETE CASCADE
 ) ENGINE = INNODB;
+
+CREATE TABLE student_first_career (
+    id              INT UNSIGNED      NOT NULL AUTO_INCREMENT,
+    student_id      BIGINT UNSIGNED   NOT NULL,
+    campus_id       SMALLINT UNSIGNED NOT NULL,
+    career_id       SMALLINT UNSIGNED NOT NULL,
+    student_classes VARCHAR(5000),
+    PRIMARY KEY (id),
+    FOREIGN KEY (student_id)
+        REFERENCES student (id),
+    FOREIGN KEY (campus_id)
+        REFERENCES campus (id),
+    FOREIGN KEY (career_id)
+        REFERENCES career (id)
+) ENGINE = INNODB;
+
+CREATE TABLE student_second_career (
+    id              INT UNSIGNED      NOT NULL AUTO_INCREMENT,
+    student_id      BIGINT UNSIGNED   NOT NULL,
+    campus_id       SMALLINT UNSIGNED NOT NULL,
+    career_id       SMALLINT UNSIGNED NOT NULL,
+    student_classes VARCHAR(5000),
+    PRIMARY KEY (id),
+    FOREIGN KEY (student_id)
+        REFERENCES student (id),
+    FOREIGN KEY (campus_id)
+        REFERENCES campus (id),
+    FOREIGN KEY (career_id)
+        REFERENCES career (id)
+) ENGINE = INNODB;
