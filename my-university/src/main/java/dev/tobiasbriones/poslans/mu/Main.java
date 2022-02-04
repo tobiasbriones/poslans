@@ -23,36 +23,28 @@ import javax.swing.*;
 import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 public final class Main extends App implements AppInstance {
-    private static final DefaultStyle.ColorPair[] APP_COLORS = {
+    private static final Font FONT = Resources.loadFont("Roboto-Light");
+    private static final StringResources strings = StringResources.load();
+    private static final DefaultStyle.ColorPair[] appColors = {
         new DefaultStyle.ColorPair(
             Style.ACCENT,
             Color.decode("#00B8D4")
         )
     };
 
-    // -------------------- STATIC METHODS -------------------- //
     public static void main(String[] args) {
-        final Font font = Resources.loadFont("Roboto-Light");
-        try {
-            new Main(font);
-        }
-        catch (IOException e) {
-            e.printStackTrace();
-        }
+        SwingUtilities.invokeLater(Main::new);
     }
 
     private final AppStyle appStyle;
-    private final StringResources stringResources;
     private final User user;
 
-    public Main(Font font) throws IOException {
-        super(font);
-        this.appStyle = new DefaultStyle(font, APP_COLORS);
-        this.stringResources = new StringResources(getClass());
+    public Main() {
+        super(FONT);
+        this.appStyle = new DefaultStyle(FONT, appColors);
         this.user = new User();
         try {
             final File loginFile = new File("user.key");
@@ -83,13 +75,13 @@ public final class Main extends App implements AppInstance {
     }
 
     @Override
-    public AppStyle getAppStyle() {
-        return appStyle;
+    public StringResources getStringResources() {
+        return strings;
     }
 
     @Override
-    public StringResources getStringResources() {
-        return stringResources;
+    public AppStyle getAppStyle() {
+        return appStyle;
     }
 
     public void login() {
