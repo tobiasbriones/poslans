@@ -8,10 +8,12 @@ import engineer.mathsoftware.jdesk.Config;
 import engineer.mathsoftware.jdesk.io.IOFile;
 
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public final class AppConfig {
     public static final String[] LANGUAGES_CODES = { "EN", "ES" };
-    private static final IOFile CONFIG_FILE = new IOFile("config.properties");
+    private static final Path CONFIG_FILE = Paths.get("config.properties");
     private static final String LANGUAGE_KEY = "language";
 
     public static String getLanguage() {

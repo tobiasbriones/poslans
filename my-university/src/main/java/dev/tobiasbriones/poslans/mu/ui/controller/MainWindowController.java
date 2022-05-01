@@ -11,6 +11,7 @@ import dev.tobiasbriones.poslans.mu.ui.MainWindow;
 import dev.tobiasbriones.poslans.mu.ui.editing.Campus;
 import dev.tobiasbriones.poslans.mu.ui.editing.Career;
 import dev.tobiasbriones.poslans.mu.ui.editing.EditingItem;
+import engineer.mathsoftware.jdesk.Config;
 import engineer.mathsoftware.jdesk.resources.StringResources;
 import engineer.mathsoftware.jdesk.ui.dialog.TaskDialog;
 import org.apache.poi.ss.usermodel.*;
@@ -1035,14 +1036,9 @@ public final class MainWindowController implements MainWindow.Callback {
         if (!user.isSet() || keyUserPassword == null) {
             throw new Exception("Not connected");
         }
-        final JSONObject userJSON = new JSONObject();
-        user.get(userJSON);
         // TODO ADD NEW IMPL this used to be encrypted, move to some JWT
         //  approach now
-        Files.write(
-            Paths.get("user.json"),
-            userJSON.toString().getBytes(StandardCharsets.UTF_8)
-        );
+        Config.save(file.toPath(), "user", user.getUser());
     }
 
     @Override
