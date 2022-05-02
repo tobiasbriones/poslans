@@ -4,10 +4,10 @@
 
 package dev.tobiasbriones.poslans.mu.ui;
 
-import dev.tobiasbriones.poslans.mu.Strings;
 import dev.tobiasbriones.poslans.mu.models.career.Course;
 import dev.tobiasbriones.poslans.mu.models.career.curriculum.CareerCurriculum;
 import dev.tobiasbriones.poslans.mu.models.career.curriculum.CourseNode;
+import engineer.mathsoftware.jdesk.resources.StringResourceId;
 import engineer.mathsoftware.jdesk.resources.StringResources;
 import engineer.mathsoftware.jdesk.ui.dialog.LoadingBarDialog;
 import engineer.mathsoftware.jdesk.ui.view.Button;
@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.Map;
 
 import static dev.tobiasbriones.poslans.mu.Strings.*;
-import static dev.tobiasbriones.poslans.mu.Strings.EDIT;
-import static dev.tobiasbriones.poslans.mu.Strings.REQUIREMENTS;
 
 public final class CareerCurriculumEditorDialog extends LoadingBarDialog implements Form.FormListener,
                                                                                     ClickListener {
@@ -77,7 +75,6 @@ public final class CareerCurriculumEditorDialog extends LoadingBarDialog impleme
         final TextLabel careerNameLabel = new TextLabel(ccw, careerName);
         final Button saveButton = new Button(this, SAVE);
         Course currentCourse;
-
         // If curriculum is full
         if (curriculum.size() == courses.size()) {
             for (CourseNode node : curriculum) {
@@ -173,32 +170,31 @@ public final class CareerCurriculumEditorDialog extends LoadingBarDialog impleme
     }
 
     @Override
-    public void onClick(Object view, int viewTextId) {
-        switch (viewTextId) {
-            case EDIT:
-                final int selection = table.getSelectedRow();
-                if (selection != -1) {
+    public void onClick(Object view, StringResourceId viewTextId) {
+        if (viewTextId == EDIT) {
+            final int selection = table.getSelectedRow();
+            if (selection != -1) {
+                // sorry :D
+            }
+        }
+        else if (viewTextId == DELETE) {
+            final int[] rows = table.getSelectedRows();
+            final TableNodeItem[] delete = new TableNodeItem[rows.length];
+            if (rows.length != 0) {
+                int i = 0;
+                for (int row : rows) {
+                    delete[i] = nodeItems.get(row);
+                    i++;
                 }
-                break;
-            case DELETE:
-                final int[] rows = table.getSelectedRows();
-                final TableNodeItem[] delete = new TableNodeItem[rows.length];
-                if (rows.length != 0) {
-                    int i = 0;
-                    for (int row : rows) {
-                        delete[i] = nodeItems.get(row);
-                        i++;
-                    }
-                    for (TableNodeItem item : delete) {
-                        nodeItems.remove(item);
-                    }
-                    //updateTable();
+                for (TableNodeItem item : delete) {
+                    nodeItems.remove(item);
                 }
-                break;
-            case SAVE:
-                ((Button) view).setEnabled(false);
-                //save();
-                break;
+                //updateTable();
+            }
+        }
+        else if (viewTextId == SAVE) {
+            ((Button) view).setEnabled(false);
+            //save();
         }
     }
 

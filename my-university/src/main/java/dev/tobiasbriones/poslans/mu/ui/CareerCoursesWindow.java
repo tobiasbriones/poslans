@@ -4,7 +4,6 @@
 
 package dev.tobiasbriones.poslans.mu.ui;
 
-import dev.tobiasbriones.poslans.mu.Strings;
 import dev.tobiasbriones.poslans.mu.models.career.Course;
 import dev.tobiasbriones.poslans.mu.ui.controller.Item;
 import dev.tobiasbriones.poslans.mu.ui.editing.FieldValidationException;
@@ -13,6 +12,7 @@ import engineer.mathsoftware.jdesk.App;
 import engineer.mathsoftware.jdesk.AppInstance;
 import engineer.mathsoftware.jdesk.Window;
 import engineer.mathsoftware.jdesk.resources.Resources;
+import engineer.mathsoftware.jdesk.resources.StringResourceId;
 import engineer.mathsoftware.jdesk.ui.dialog.AppDialog;
 import engineer.mathsoftware.jdesk.ui.view.Button;
 import engineer.mathsoftware.jdesk.ui.view.Panel;
@@ -116,7 +116,7 @@ public final class CareerCoursesWindow extends Window implements ClickListener,
         this.careersList = new ListPane<>(this, careersListModel);
         this.coursesListModel = new DefaultListModel<>();
         this.coursesList = new ListPane<>(this, coursesListModel);
-        this.editForm = new Form(this, 0);
+        this.editForm = new Form(this, APP_NAME);
         this.editCodeIT = new InputText(this);
         this.editNameIT = new InputText(this);
         this.editCreditsIT = new InputText(this);
@@ -160,7 +160,7 @@ public final class CareerCoursesWindow extends Window implements ClickListener,
     }
 
     @Override
-    public void onClick(Object view, int viewTextId) {
+    public void onClick(Object view, StringResourceId viewTextId) {
         if (getSelectedCareerId() == -1) {
             return;
         }
@@ -168,50 +168,48 @@ public final class CareerCoursesWindow extends Window implements ClickListener,
             return;
         }
         final boolean isCourseSelected = coursesList.getSelectedIndex() != -1;
-        switch (viewTextId) {
-            case ADD:
-                openFormAdd();
-                break;
-            case EDIT:
-                if (!isCourseSelected) {
-                    return;
-                }
-                if (coursesList.getSelectedIndices().length != 1) {
-                    return;
-                }
-                openFormEdit(coursesList.getSelectedValue());
-                break;
-            case DELETE:
-                if (!isCourseSelected) {
-                    return;
-                }
-                if (AppDialog.showConfirm(
-                    this,
-                    DELETE,
-                    DELETE_COURSES_QUESTION,
-                    DELETE
-                ) == AppDialog.ConfirmResult.RESULT_OK) {
-                    deleteSelectedCourses();
-                    discardButton.setEnabled(true);
-                    saveButton.setEnabled(true);
-                }
-                break;
-            case DISCARD:
-                if (AppDialog.showConfirm(
-                    this,
-                    DISCARD,
-                    DISCARD_CHANGES_QUESTION,
-                    DISCARD
-                ) == AppDialog.ConfirmResult.RESULT_OK) {
-                    discard();
-                }
-                break;
-            case SAVE:
-                saveCourses();
-                break;
-            case CAREER_CURRICULUM:
-                controller.openCCEW(this);
-                break;
+        if (viewTextId == ADD) {
+            openFormAdd();
+        }
+        else if (viewTextId == EDIT) {
+            if (!isCourseSelected) {
+                return;
+            }
+            if (coursesList.getSelectedIndices().length != 1) {
+                return;
+            }
+            openFormEdit(coursesList.getSelectedValue());
+        }
+        else if (viewTextId == DELETE) {
+            if (!isCourseSelected) {
+                return;
+            }
+            if (AppDialog.showConfirm(
+                this,
+                DELETE,
+                DELETE_COURSES_QUESTION,
+                DELETE
+            ) == AppDialog.ConfirmResult.RESULT_OK) {
+                deleteSelectedCourses();
+                discardButton.setEnabled(true);
+                saveButton.setEnabled(true);
+            }
+        }
+        else if (viewTextId == DISCARD) {
+            if (AppDialog.showConfirm(
+                this,
+                DISCARD,
+                DISCARD_CHANGES_QUESTION,
+                DISCARD
+            ) == AppDialog.ConfirmResult.RESULT_OK) {
+                discard();
+            }
+        }
+        else if (viewTextId == SAVE) {
+            saveCourses();
+        }
+        else if (viewTextId == CAREER_CURRICULUM) {
+            controller.openCCEW(this);
         }
     }
 
@@ -224,7 +222,6 @@ public final class CareerCoursesWindow extends Window implements ClickListener,
         final String code = editCodeIT.getText();
         final String name = editNameIT.getText();
         final int credits = Integer.parseInt(editCreditsIT.getText());
-
         // If it has changes
         if (!(code.equals(editingCourse.getCode()) && name.equals(editingCourse.getName()) && credits == editingCourse.getCredits())) {
             controller.addToCourseChanges(editingCourse);
@@ -305,11 +302,11 @@ public final class CareerCoursesWindow extends Window implements ClickListener,
                         final Window w = CareerCoursesWindow.this;
                         final AppDialog.ConfirmResult result =
                             AppDialog.showConfirm(
-                            w,
-                            DISCARD,
-                            DISCARD_CHANGES_QUESTION,
-                            DISCARD
-                        );
+                                w,
+                                DISCARD,
+                                DISCARD_CHANGES_QUESTION,
+                                DISCARD
+                            );
                         if (result == AppDialog.ConfirmResult.RESULT_OK) {
                             discard();
                         }

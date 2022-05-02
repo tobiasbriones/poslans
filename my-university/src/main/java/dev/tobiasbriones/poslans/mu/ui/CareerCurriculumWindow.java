@@ -11,6 +11,7 @@ import dev.tobiasbriones.poslans.mu.models.career.curriculum.CourseNode;
 import engineer.mathsoftware.jdesk.App;
 import engineer.mathsoftware.jdesk.AppInstance;
 import engineer.mathsoftware.jdesk.Window;
+import engineer.mathsoftware.jdesk.resources.StringResourceId;
 import engineer.mathsoftware.jdesk.resources.StringResources;
 import engineer.mathsoftware.jdesk.ui.view.Button;
 import engineer.mathsoftware.jdesk.ui.view.Panel;
@@ -98,7 +99,7 @@ public final class CareerCurriculumWindow extends Window implements ClickListene
     }
 
     @Override
-    public void onClick(Object view, int viewTextId) {
+    public void onClick(Object view, StringResourceId viewTextId) {
         final Map<String, Course> courses = controller.getCourses();
         new CareerCurriculumEditorDialog(this, curriculum, courses);
     }

@@ -1039,6 +1039,7 @@ public final class MainWindowController implements MainWindow.Callback {
         // TODO ADD NEW IMPL this used to be encrypted, move to some JWT
         //  approach now
         Config.save(file.toPath(), "user", user.getUser());
+
     }
 
     @Override

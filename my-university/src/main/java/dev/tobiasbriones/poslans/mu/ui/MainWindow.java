@@ -4,7 +4,6 @@
 
 package dev.tobiasbriones.poslans.mu.ui;
 
-import dev.tobiasbriones.poslans.mu.Strings;
 import dev.tobiasbriones.poslans.mu.ui.controller.CancelFlag;
 import dev.tobiasbriones.poslans.mu.ui.controller.Item;
 import dev.tobiasbriones.poslans.mu.ui.editing.Campus;
@@ -15,6 +14,7 @@ import engineer.mathsoftware.jdesk.AppInstance;
 import engineer.mathsoftware.jdesk.Window;
 import engineer.mathsoftware.jdesk.io.FileFormat;
 import engineer.mathsoftware.jdesk.resources.Resources;
+import engineer.mathsoftware.jdesk.resources.StringResourceId;
 import engineer.mathsoftware.jdesk.resources.StringResources;
 import engineer.mathsoftware.jdesk.ui.FileFormatFilter;
 import engineer.mathsoftware.jdesk.ui.dialog.ActionPanel;
@@ -232,11 +232,11 @@ public final class MainWindow extends Window implements ClickListener,
         }
         if (source == copyFormatsButton) {
             final JFileChooser fileChooser = new JFileChooser();
-
             AppDialog.showMessage(this, SELECT_FOLDER_SAVE_FORMS);
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
             if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                final File sourceDirectory = new File("formats/POSLANS MU Formats");
+                final File sourceDirectory = new File(
+                    "formats/POSLANS MU Formats");
                 final File destDirectory = new File(
                     fileChooser.getSelectedFile(),
                     "POSLANS MU Formats"
@@ -264,59 +264,57 @@ public final class MainWindow extends Window implements ClickListener,
     }
 
     @Override
-    public void onClick(Object view, int textId) {
-        switch (textId) {
-            case SAVE_KEY:
-                final JFileChooser fileChooser = new JFileChooser();
-                fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-                if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
-                    final File file = new File(
-                        fileChooser.getSelectedFile(),
-                        "POSLANS Admin Access.key"
-                    );
-                    final String password = AppDialog.showPasswordInput(
-                        this,
-                        TYPE_PASSWORD
-                    );
-                    if (password != null) {
-                        final boolean isValid = callback.isValidUserPassword(
-                            password);
-                        if (isValid) {
-                            saveLoginKey(file);
-                        }
-                        else {
-                            AppDialog.showMessage(
-                                this,
-                                INVALID_PASSWORD,
-                                AppDialog.Type.WARNING
-                            );
-                        }
+    public void onClick(Object view, StringResourceId textId) {
+        if (textId == SAVE_KEY) {
+            final JFileChooser fileChooser = new JFileChooser();
+            fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+            if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                final File file = new File(
+                    fileChooser.getSelectedFile(),
+                    "POSLANS Admin Access.key"
+                );
+                final String password = AppDialog.showPasswordInput(
+                    this,
+                    TYPE_PASSWORD
+                );
+                if (password != null) {
+                    final boolean isValid = callback.isValidUserPassword(
+                        password);
+                    if (isValid) {
+                        saveLoginKey(file);
+                    }
+                    else {
+                        AppDialog.showMessage(
+                            this,
+                            INVALID_PASSWORD,
+                            AppDialog.Type.WARNING
+                        );
                     }
                 }
-                break;
-            case SET_EMAIL_ACCESS:
-                final EmailLoginWindow.Callback cb = callback;
-                final EmailLoginWindow elw = new EmailLoginWindow(app, cb);
-                app.addWindow(elw);
-                break;
-            case CURRENT_TERM:
-                new TermDialog(this, callback);
-                break;
-            case TERM_HISTORY:
-                new TermHistoryDialog(this, callback);
-                break;
-            case PROFESSORS:
-                new Editor1Dialog(this, PROFESSORS, callback);
-                break;
-            case STUDENTS:
-                new Editor1Dialog(this, STUDENTS, callback);
-                break;
-            case CAMPUSES:
-                openEditCampuses();
-                break;
-            case CAREERS:
-                openEditCareers();
-                break;
+            }
+        }
+        else if (textId == SET_EMAIL_ACCESS) {
+            final EmailLoginWindow.Callback cb = callback;
+            final EmailLoginWindow elw = new EmailLoginWindow(app, cb);
+            app.addWindow(elw);
+        }
+        else if (textId == CURRENT_TERM) {
+            new TermDialog(this, callback);
+        }
+        else if (textId == TERM_HISTORY) {
+            new TermHistoryDialog(this, callback);
+        }
+        else if (textId == PROFESSORS) {
+            new Editor1Dialog(this, PROFESSORS, callback);
+        }
+        else if (textId == STUDENTS) {
+            new Editor1Dialog(this, STUDENTS, callback);
+        }
+        else if (textId == CAMPUSES) {
+            openEditCampuses();
+        }
+        else if (textId == CAREERS) {
+            openEditCareers();
         }
     }
 
@@ -331,7 +329,6 @@ public final class MainWindow extends Window implements ClickListener,
         final Dimension barButtonSize = new Dimension(24, 24);
         final Dimension bottomButtonSize = new Dimension(150, 40);
         final StringResources sr = getStringResources();
-
         dbLabel.setTextStyle(TextStyle.BOLD);
         logoutButton.setPreferredSize(barButtonSize);
         logoutButton.setToolTipText(sr.get(LOGOUT));
@@ -982,7 +979,6 @@ public final class MainWindow extends Window implements ClickListener,
         public void actionPerformed(ActionEvent e) {
             final Object src = e.getSource();
             final int selection = list.getSelectedIndex();
-
             try {
                 if (src == downloadAllButton) {
                     final File savingFile = getSavingFile(this);
@@ -1065,7 +1061,7 @@ public final class MainWindow extends Window implements ClickListener,
         private final Button passwordsButton;
         private final Button downloadButton;
 
-        Editor1Dialog(MainWindow mw, int edit, Callback callback) {
+        Editor1Dialog(MainWindow mw, StringResourceId edit, Callback callback) {
             super(mw);
             this.mw = mw;
             this.edit = mw.getStringResources().get(edit);
@@ -1150,12 +1146,10 @@ public final class MainWindow extends Window implements ClickListener,
                 return;
             }
             final File file = fileChooser.getSelectedFile();
-
             try (Workbook workbook = new XSSFWorkbook(file)) {
                 final Sheet sheet = workbook.getSheetAt(0);
                 trimedSheetSize(sheet);
                 final int rows = sheet.getLastRowNum();
-
                 if (rows < 1) {
                     AppDialog.showMessage(mw, NO_DATA);
                     return;
@@ -1220,7 +1214,7 @@ public final class MainWindow extends Window implements ClickListener,
             }
         }
 
-        private int getRegisterOrUpdateMsg(boolean register) {
+        private StringResourceId getRegisterOrUpdateMsg(boolean register) {
             if (editType == Type.PROFESSOR) {
                 if (register) {
                     return REGISTERING_PROFESSORS;
@@ -1234,9 +1228,9 @@ public final class MainWindow extends Window implements ClickListener,
         }
 
         private void download(File file) {
-            final int msgRes = (editType == Type.PROFESSOR)
-                               ? DOWNLOADING_PROFESSORS
-                               : DOWNLOADING_STUDENTS;
+            final StringResourceId msgRes = (editType == Type.PROFESSOR)
+                                            ? DOWNLOADING_PROFESSORS
+                                            : DOWNLOADING_STUDENTS;
             final CancelFlag cancelFlag = new CancelFlag();
             final TaskDialog<Void> td = new TaskDialog<>(mw, DOWNLOAD, msgRes);
             final WorkRunnable<Void> runnable = () -> {
@@ -1285,8 +1279,10 @@ public final class MainWindow extends Window implements ClickListener,
             Workbook passwordsWorkbook,
             boolean register
         ) {
-            final int titleRes = (register) ? REGISTERING : UPDATING;
-            final int msgRes = getRegisterOrUpdateMsg(register);
+            final StringResourceId titleRes = (register)
+                                              ? REGISTERING
+                                              : UPDATING;
+            final StringResourceId msgRes = getRegisterOrUpdateMsg(register);
             final int rows = sheet.getLastRowNum();
             final TaskDialog<Sheet> td = new TaskDialog<>(
                 mw,
@@ -1353,9 +1349,9 @@ public final class MainWindow extends Window implements ClickListener,
                             );
                             return;
                         }
-                        final int msgRes = (register)
-                                           ? REGISTRATION_FINISHED
-                                           : UPDATE_FINISHED;
+                        final StringResourceId msgRes = (register)
+                                                        ? REGISTRATION_FINISHED
+                                                        : UPDATE_FINISHED;
                         final String pwdFileName;
                         AppDialog.showMessage(
                             mw,
@@ -1427,9 +1423,9 @@ public final class MainWindow extends Window implements ClickListener,
         }
 
         private void sendPasswords(Sheet sheet) {
-            final int msgRes = (editType == Type.PROFESSOR)
-                               ? SENDING_PWD_PROFESSORS
-                               : SENDING_PWD_STUDENTS;
+            final StringResourceId msgRes = (editType == Type.PROFESSOR)
+                                            ? SENDING_PWD_PROFESSORS
+                                            : SENDING_PWD_STUDENTS;
             final int size = sheet.getPhysicalNumberOfRows() - 1;
             final CancelFlag cancelFlag = new CancelFlag();
             final TaskDialog<Void> td = new TaskDialog<>(
@@ -1478,9 +1474,9 @@ public final class MainWindow extends Window implements ClickListener,
         }
 
         private void delete(Sheet sheet) {
-            final int msgRes = (editType == Type.PROFESSOR)
-                               ? DELETING_PROFESSORS
-                               : DELETING_STUDENTS;
+            final StringResourceId msgRes = (editType == Type.PROFESSOR)
+                                            ? DELETING_PROFESSORS
+                                            : DELETING_STUDENTS;
             final int size = sheet.getPhysicalNumberOfRows() - 1;
             final TaskDialog<Void> td = new TaskDialog<>(
                 mw,
@@ -1533,7 +1529,6 @@ public final class MainWindow extends Window implements ClickListener,
             final JFileChooser fileChooser = new JFileChooser();
             final LocalDateTime ldt = LocalDateTime.now();
             final StringBuilder dtBuilder = new StringBuilder();
-
             dtBuilder.append(" ");
             dtBuilder.append(ldt.getDayOfMonth());
             dtBuilder.append("-");
@@ -1548,7 +1543,6 @@ public final class MainWindow extends Window implements ClickListener,
             dtBuilder.append(ldt.getSecond());
             dtBuilder.append(".xlsx");
             fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-
             if (fileChooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
                 final String fileName = name + dtBuilder;
                 final File file = new File(
@@ -1804,9 +1798,9 @@ public final class MainWindow extends Window implements ClickListener,
         }
 
         private void save() {
-            final int msgRes = (type == Campus.class)
-                               ? UPDATING_CAMPUSES
-                               : UPDATING_CAREERS;
+            final StringResourceId msgRes = (type == Campus.class)
+                                            ? UPDATING_CAMPUSES
+                                            : UPDATING_CAREERS;
             final TaskDialog<Void> td = new TaskDialog<>(
                 mw,
                 UPDATE,
